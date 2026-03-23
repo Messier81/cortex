@@ -1,0 +1,8 @@
+{
+  "name": "cortex",
+  "description": "Adaptive project intelligence for Claude Code. Auto-derives your project conventions, selects relevant context for any task, and verifies changes against original intent.",
+  "author": {
+    "name": "cortex-cc",
+    "url": "https://github.com/cortex-cc/cortex"
+  }
+}

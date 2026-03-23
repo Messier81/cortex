@@ -1,10 +1,10 @@
 # Cortex
 
-**Adaptive project intelligence for Claude Code.**
+**Complete project intelligence and workflow for Claude Code.**
 
-Most AI coding tools tell Claude *how* to work. Cortex tells Claude *what to know about your project* — your conventions, your architecture, your context.
+Most AI coding tools tell Claude *how* to work. Cortex tells Claude *what to know about your project* — your conventions, your architecture, your context — and then gives it a complete workflow to plan, build, review, debug, and ship.
 
-Eight commands. Zero configuration. Works with any codebase.
+Fourteen commands. Zero configuration. Works with any codebase. No other tools required.
 
 ---
 
@@ -20,6 +20,8 @@ So you either write a long CLAUDE.md (manual, gets stale) or repeat yourself eve
 
 And when Claude finishes a task, how do you know it actually built what you asked? "Tests pass" isn't the same as "intent satisfied."
 
+And if you want a full plan-build-review-ship workflow, you need to install GSD *and* Superpowers *on top of* a project intelligence layer. Three tools, manual setup, overlapping responsibilities.
+
 ---
 
 ## The Solution
@@ -28,20 +30,21 @@ And when Claude finishes a task, how do you know it actually built what you aske
 # One-time: analyze your project
 /cortex-init
 
-# Before any task: find the right files
-/cortex-focus Add OAuth2 login with Google
-
-# After implementation: verify the intent was satisfied
-/cortex-verify
+# Plan → Build → Ship
+/cortex-plan Add OAuth2 login with Google
+/cortex-build
+/cortex-ship
 ```
 
-That's it.
+That's the whole workflow.
 
 ---
 
-## What Each Command Does
+## Commands
 
-### `/cortex-init`
+### Intelligence (run once, benefits every session)
+
+#### `/cortex-init`
 Runs 3 parallel agents that scan your codebase:
 - **Convention scanner**: naming patterns, file organization, error handling, import style
 - **Dependency mapper**: stack, frameworks, core abstractions, test structure
@@ -49,37 +52,82 @@ Runs 3 parallel agents that scan your codebase:
 
 Produces `.cortex/profile.json` (machine-readable) and `.cortex/CONVENTIONS.md` (human-readable). Commit both so your whole team benefits.
 
-### `/cortex-focus <task>`
-Given a task description, finds the most relevant files using a 3-tier algorithm:
+#### `/cortex-update`
+Rescans only changed files and patches the profile. Faster than re-running `/cortex-init`.
+
+#### `/cortex-ask <question>`
+Answers natural language questions about your project from the profile. "Where should I add a new store?" "What's the test command?"
+
+---
+
+### Workflow (use for every task)
+
+#### `/cortex-plan <task>`
+Generates a structured implementation plan before any code is written:
+- Breaks down explicit + implied requirements with acceptance criteria
+- Creates step-by-step implementation approach with file paths
+- Defines TDD order (tests first for new functionality)
+- Self-challenges the plan ("what's simpler? what could go wrong?")
+- **Hard gate**: presents the plan for approval before anything is implemented
+
+Saves to `.cortex/active-plan.json`.
+
+#### `/cortex-build`
+Executes the active plan step by step:
+- Announces each step before doing it
+- TDD-first: writes tests before implementation for flagged steps
+- Runs tests after each step — stops and reports on failure (never brute-forces)
+- Resumes from last completed step if interrupted
+- Auto-commits on completion with a conventional commit message
+
+#### `/cortex-review`
+Two-stage adversarial review:
+1. **Spec compliance**: did we build everything the intent required?
+2. **Code quality**: convention adherence, security patterns, error handling, test coverage
+
+Returns PASS / PASS WITH WARNINGS / FAIL per stage.
+
+#### `/cortex-debug <description>`
+Systematic hypothesis-driven debugging:
+1. Reproduces the exact failure
+2. Generates 3 ranked hypotheses
+3. Investigates each one methodically (never guess-and-checks)
+4. Implements a fix + regression test once root cause is confirmed
+
+#### `/cortex-ship`
+Finishes and ships the current work:
+1. Runs full two-stage review
+2. Commits any uncommitted changes
+3. Pushes branch
+4. Creates a PR with auto-generated description from the plan
+5. Cleans up active intent and plan
+
+#### `/cortex-quick <task>`
+Fast path for small tasks (<20 lines). Skips planning — focuses context, implements, tests, and commits in one shot. Warns if scope grows larger than expected.
+
+---
+
+### Context & Memory
+
+#### `/cortex-focus <task>`
+Given a task, finds the most relevant files using a 3-tier algorithm:
 1. Keyword + structural search (guided by your project profile)
 2. Import graph expansion (traces who imports what)
 3. Claude-based re-ranking (reads files to verify relevance)
 
-Outputs: primary files, secondary files, test files, conventions to follow, and implied requirements. Saves the task as the active intent for `/cortex-verify`.
+Saves the task as the active intent for `/cortex-verify`.
 
-### `/cortex-verify`
-Compares your diff against the original intent. Checks:
-- **Completeness**: did every implied requirement get implemented?
-- **Correctness**: do the changes logically satisfy the task?
-- **Side effects**: are there changes outside the expected scope?
-- **Convention compliance**: does new code follow project patterns?
+#### `/cortex-verify`
+Compares your diff against the original intent. Checks completeness, correctness, side effects, and convention compliance. Returns a structured PASS/WARN/FAIL verdict.
 
-Returns a structured PASS/WARN/FAIL verdict.
+#### `/cortex-risk`
+Classifies the blast radius of pending changes. Shows risk per file with mitigations.
 
-### `/cortex-update`
-Rescans only changed files and patches the profile. Faster than re-running `/cortex-init`.
-
-### `/cortex-ask <question>`
-Answers natural language questions about your project from the profile. "Where should I add a new store?" "What's the test command?"
-
-### `/cortex-remember <what>`
+#### `/cortex-remember <what>`
 Saves decisions, patterns, and gotchas to `.cortex/memories/` for future sessions.
 
-### `/cortex-recall <query>`
+#### `/cortex-recall <query>`
 Searches your saved memories by keyword.
-
-### `/cortex-risk`
-Classifies the blast radius of pending changes. Shows risk per file with mitigations.
 
 ---
 
@@ -100,10 +148,10 @@ Then in any project:
 
 ```bash
 # From the web
-curl -fsSL https://raw.githubusercontent.com/cortex-cc/cortex/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Messier81/cortex/main/install.sh | bash
 
 # Or clone and install locally
-git clone https://github.com/cortex-cc/cortex
+git clone https://github.com/Messier81/cortex
 cd cortex && ./install.sh /path/to/your/project
 ```
 
@@ -113,12 +161,12 @@ This copies the commands, agents, and skills into your project's `.claude/` dire
 
 ## How It Composes With Other Tools
 
-Cortex is infrastructure, not a workflow. It layers underneath whatever you're already using:
+Cortex works standalone, but also layers underneath existing tools:
 
-- **With GSD**: Run `/cortex-focus` before starting a GSD phase to give the agents better context
+- **With GSD**: Run `/cortex-focus` before starting a GSD phase to give agents better context
 - **With Superpowers**: Cortex's `project-intelligence` skill injects conventions into Superpowers' planning and TDD skills
 - **With spec-kit**: Use `/cortex-init` instead of manually writing a constitution
-- **Standalone**: Use the three commands as your complete workflow
+- **Standalone**: Use `/cortex-plan` → `/cortex-build` → `/cortex-ship` as your complete workflow
 
 ---
 
@@ -130,24 +178,43 @@ Cortex is infrastructure, not a workflow. It layers underneath whatever you're a
 ├── CONVENTIONS.md     ← commit this
 ├── .gitignore         ← auto-created
 ├── active-intent.json ← NOT committed (per-session)
+├── active-plan.json   ← NOT committed (per-session)
 └── memories/          ← NOT committed (personal, local)
     └── <id>.json
 ```
 
 ---
 
+## What's Inside
+
+```
+14 commands · 10 agents · 1 auto-skill · 2 hooks
+Zero dependencies · Pure markdown + shell scripts
+```
+
+| Component | Count | Purpose |
+|-----------|-------|---------|
+| Commands | 14 | User-invokable slash commands |
+| Agents | 10 | Specialized subagents (parallel where possible) |
+| Auto-skill | 1 | `project-intelligence` — injects conventions automatically |
+| Hooks | 2 | `pre-task-inject` (context on submit) + `post-tool-lint` (lint on write) |
+
+---
+
 ## Roadmap
 
-**Phase 1**: Auto-derived conventions, semantic context selection, intent verification
+**Phase 1** ✓: Auto-derived conventions, semantic context selection, intent verification
 
-**Phase 2 (current)**: Persistent project memory (JSON files in `.cortex/memories/`), `/cortex-remember`, `/cortex-recall`, incremental updates with `/cortex-update`, natural language queries with `/cortex-ask`, risk classification with `/cortex-risk`, pre-task context injection via hooks
+**Phase 2** ✓: Persistent project memory, `/cortex-remember`, `/cortex-recall`, incremental updates, natural language queries, risk classification, pre-task context injection
 
-**Phase 3**: SQLite + embeddings for semantic memory search, cross-project learning, team-shared memories
+**Phase 3** ✓ (current): Complete standalone workflow — `/cortex-plan`, `/cortex-build`, `/cortex-review`, `/cortex-debug`, `/cortex-ship`, `/cortex-quick`, post-tool lint hook
+
+**Phase 4**: SQLite + embeddings for semantic memory search, cross-project learning, team-shared memories
 
 ---
 
 ## Why Cortex
 
-Every existing tool requires you to configure it before it's useful. Cortex is useful from the first run because it reads your project rather than asking you to describe it.
+Every existing tool requires you to configure it before it's useful, or requires multiple other tools to get a complete workflow. Cortex is useful from the first run because it reads your project — and it's complete because it covers the full plan-build-review-ship loop.
 
-It doesn't replace your workflow — it makes your workflow smarter.
+It doesn't replace your workflow. It *is* your workflow.

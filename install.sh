@@ -6,8 +6,8 @@
 
 set -e
 
-CORTEX_REPO="https://github.com/cortex-cc/cortex"
-CORTEX_RAW="https://raw.githubusercontent.com/cortex-cc/cortex/main"
+CORTEX_REPO="https://github.com/Messier81/cortex"
+CORTEX_RAW="https://raw.githubusercontent.com/Messier81/cortex/main"
 
 # Colors
 GREEN='\033[0;32m'

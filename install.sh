@@ -40,30 +40,18 @@ if [ -f "$SCRIPT_DIR/commands/cortex-init.md" ]; then
   SOURCE_DIR="$SCRIPT_DIR"
   echo -e "${YELLOW}Using local files from $SOURCE_DIR${NC}"
 else
-  # Remote install — download files
-  echo "Downloading Cortex from GitHub..."
+  # Remote install — clone the repo (more reliable than downloading individual files)
+  echo "Cloning Cortex from GitHub..."
   TMPDIR_CORTEX=$(mktemp -d)
   trap "rm -rf $TMPDIR_CORTEX" EXIT
 
-  FILES=(
-    "commands/cortex-init.md"
-    "commands/cortex-focus.md"
-    "commands/cortex-verify.md"
-    "agents/convention-scanner.md"
-    "agents/dependency-mapper.md"
-    "agents/history-analyzer.md"
-    "agents/context-ranker.md"
-    "agents/intent-verifier.md"
-    "skills/project-intelligence/SKILL.md"
-  )
+  if ! git clone --depth=1 "$CORTEX_REPO" "$TMPDIR_CORTEX/cortex" 2>/dev/null; then
+    echo "Error: Could not clone $CORTEX_REPO"
+    echo "Try: git clone $CORTEX_REPO && cd cortex && ./install.sh"
+    exit 1
+  fi
 
-  for FILE in "${FILES[@]}"; do
-    DIR=$(dirname "$TMPDIR_CORTEX/$FILE")
-    mkdir -p "$DIR"
-    curl -fsSL "$CORTEX_RAW/$FILE" -o "$TMPDIR_CORTEX/$FILE"
-  done
-
-  SOURCE_DIR="$TMPDIR_CORTEX"
+  SOURCE_DIR="$TMPDIR_CORTEX/cortex"
 fi
 
 # Create target directories

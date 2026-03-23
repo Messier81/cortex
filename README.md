@@ -246,6 +246,16 @@ Active plan cleared. Ready for next task.
 | `/cortex-ship` | Full review → commit → push → PR with auto-generated description. Cleans up active plan and intent. |
 | `/cortex-quick <task>` | Fast path for small tasks. Skips planning — focuses, implements, tests, commits. Warns if scope grows. |
 
+### Experimentation
+
+| Command | What it does |
+|---------|-------------|
+| `/cortex-auto <task>` | Autonomous experiment loop. Loops indefinitely: try a change, measure, keep or discard, reflect on failures, repeat. Features curriculum decomposition, reflexion memory, and best-shot context from past successes. |
+| `/cortex-sweep <task>` | Parallel best-of-N. Generate 3 diverse candidates simultaneously (simplicity / performance / readability strategies), evaluate all, pick the best via tournament selection. |
+| `/cortex-evolve <goal>` | Population-based evolutionary optimization. Each generation spawns N parallel candidates that use previous successes as inspiration. Progress tracked per generation with simplicity pressure. |
+| `/cortex-experiment <hypothesis>` | Single experiment cycle. Try one hypothesis, measure, keep or discard. Writes a reflection on discard — fed into future attempts. |
+| `/cortex-log [query]` | View experiment history. `--patterns` extracts codebase-specific patterns learned from all reflections across every session. |
+
 ### Context & Memory
 
 | Command | What it does |
@@ -255,6 +265,102 @@ Active plan cleared. Ready for next task.
 | `/cortex-risk` | Classify blast radius of pending changes. Risk per file with suggested mitigations. |
 | `/cortex-remember <what>` | Save a decision, pattern, or gotcha to `.cortex/memories/` for future sessions. |
 | `/cortex-recall <query>` | Search saved memories by keyword. |
+
+---
+
+## Autonomous Experimentation
+
+Cortex includes an experiment loop inspired by Karpathy's autoresearch — but generalized to any codebase with any measurable metric.
+
+### Single experiment
+
+```
+you: /cortex-experiment "Replace lodash.get with optional chaining" --metric "npm test"
+```
+
+```
+Baseline: PASS
+After:    PASS
+Delta:    —
+
+Recommendation: KEEP ✓ (tests still pass, 8 lines removed)
+Keep this change? [Y/n]
+```
+
+### Autonomous loop
+
+```
+you: /cortex-auto Fix all TypeScript strict mode errors --metric "npx tsc --noEmit 2>&1 | grep -c error" --max 15
+```
+
+Cortex decomposes the goal into sub-goals (null errors → implicit any → strict function types), then loops autonomously:
+
+```
+Decomposed into 3 sub-goals:
+  1. Fix null/undefined errors (most mechanical)
+  2. Fix implicit `any` types
+  3. Fix strict function type errors
+
+Baseline: 47 errors
+
+✓ Attempt 1: KEEP — Add null checks in useAuth hook (47 → 31 errors)
+✗ Attempt 2: DISCARD — Add `as unknown as T` casts (31 → 33 errors, regression)
+   Reflection: Casts hide errors rather than fix them. Avoid type assertions. Use proper narrowing.
+✓ Attempt 3: KEEP — Add explicit return types to 5 service functions (31 → 18 errors)
+✓ Attempt 4: KEEP — Fix optional chaining in UserProfile component (18 → 9 errors)
+...
+
+Goal met after 11 attempts! 47 → 0 errors.
+8 improvements kept · 3 discarded
+
+Patterns learned:
+- Type assertions (as X) consistently make things worse in this codebase
+- Service layer functions are the highest-yield target for type annotation
+- Component props are already well-typed — focus on hooks and utilities
+```
+
+### Parallel sweep
+
+```
+you: /cortex-sweep "Add rate limiting to the API" --n 3
+```
+
+```
+Launching 3 candidates in parallel:
+  A: simplicity strategy
+  B: performance strategy
+  C: readability strategy
+
+Evaluating...
+
+## Sweep Results
+| Candidate | Strategy    | Tests | Lint | Lines Δ | Rank |
+|-----------|-------------|-------|------|---------|------|
+| A ✓       | simplicity  | PASS  | PASS | +42     | 1st  |
+| C         | readability | PASS  | PASS | +67     | 2nd  |
+| B         | performance | FAIL  | PASS | +89     | 3rd  |
+
+Winner: Candidate A (simplicity) — fewest lines, all tests pass
+```
+
+### Evolutionary optimization
+
+```
+you: /cortex-evolve "Reduce bundle size" --metric "du -b dist/bundle.js | cut -f1" --target 200000 --generations 8
+```
+
+```
+## Cortex Evolve: "Reduce bundle size"
+Baseline: 458,240 bytes  |  Target: 200,000 bytes
+
+Gen 1:  ████████████████████████  430,120  (KEEP, -6.1%)  [tree-shake lodash]
+Gen 2:  ███████████████████████   412,400  (KEEP, -9.8%)  [lazy-load routes]
+Gen 3:  ███████████████████████   412,400  (no improvement)
+Gen 4:  ██████████████████████    390,800  (KEEP, -14.7%) [code split vendor]
+...
+Gen 8:  █████████████████         198,200  (KEEP ✓ TARGET MET, -56.7%)
+Target: ██████████████████████
+```
 
 ---
 
@@ -303,8 +409,11 @@ Memories are stored in `.cortex/memories/` as JSON files. They're not committed 
 ├── .gitignore          ← auto-created
 ├── active-intent.json  ← NOT committed (per-session)
 ├── active-plan.json    ← NOT committed (per-session)
-└── memories/           ← NOT committed (personal, local)
-    └── <timestamp>.json
+├── memories/           ← NOT committed (personal, local)
+│   └── <timestamp>.json
+└── experiments/        ← NOT committed (local experiment history)
+    ├── active-session.json
+    └── log.json
 ```
 
 ---
@@ -324,8 +433,8 @@ Cortex works standalone, but layers cleanly underneath existing frameworks:
 
 | Component | Count | Details |
 |-----------|-------|---------|
-| Commands | 14 | User-invokable slash commands |
-| Agents | 10 | convention-scanner, dependency-mapper, history-analyzer, context-ranker, intent-verifier, risk-assessor, planner, executor, code-reviewer, debugger |
+| Commands | 19 | User-invokable slash commands |
+| Agents | 11 | convention-scanner, dependency-mapper, history-analyzer, context-ranker, intent-verifier, risk-assessor, planner, executor, code-reviewer, debugger, **experimenter** |
 | Auto-skill | 1 | `project-intelligence` — reads profile and injects conventions when Claude starts a task |
 | Hooks | 2 | `pre-task-inject` (context on prompt submit) + `post-tool-lint` (auto lint-fix on file write) |
 
@@ -341,7 +450,9 @@ Pure markdown + shell scripts. Zero dependencies. No Node.js, no npm, no build s
 
 **Phase 3** ✓ — Complete standalone workflow: `/cortex-plan`, `/cortex-build`, `/cortex-review`, `/cortex-debug`, `/cortex-ship`, `/cortex-quick`, post-tool lint hook
 
-**Phase 4** — SQLite + embeddings for semantic memory search, cross-project learning, team-shared memories
+**Phase 4** ✓ — Autonomous experimentation: `/cortex-auto` (reflexion + curriculum loop), `/cortex-sweep` (parallel best-of-N tournament), `/cortex-evolve` (population-based evolution), `/cortex-experiment` (single cycle), `/cortex-log` (history + pattern extraction). Inspired by autoresearch, AlphaEvolve, Reflexion, FunSearch, and Voyager.
+
+**Phase 5** — SQLite + embeddings for semantic memory/experiment search, cross-project learning, team-shared memories
 
 ---
 

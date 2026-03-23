@@ -75,6 +75,11 @@ cp "$SOURCE_DIR/commands/cortex-review.md" "$TARGET_DIR/.claude/commands/"
 cp "$SOURCE_DIR/commands/cortex-debug.md" "$TARGET_DIR/.claude/commands/"
 cp "$SOURCE_DIR/commands/cortex-ship.md" "$TARGET_DIR/.claude/commands/"
 cp "$SOURCE_DIR/commands/cortex-quick.md" "$TARGET_DIR/.claude/commands/"
+cp "$SOURCE_DIR/commands/cortex-auto.md" "$TARGET_DIR/.claude/commands/"
+cp "$SOURCE_DIR/commands/cortex-sweep.md" "$TARGET_DIR/.claude/commands/"
+cp "$SOURCE_DIR/commands/cortex-evolve.md" "$TARGET_DIR/.claude/commands/"
+cp "$SOURCE_DIR/commands/cortex-experiment.md" "$TARGET_DIR/.claude/commands/"
+cp "$SOURCE_DIR/commands/cortex-log.md" "$TARGET_DIR/.claude/commands/"
 
 # Copy agents
 cp "$SOURCE_DIR/agents/convention-scanner.md" "$TARGET_DIR/.claude/agents/"
@@ -87,6 +92,7 @@ cp "$SOURCE_DIR/agents/planner.md" "$TARGET_DIR/.claude/agents/"
 cp "$SOURCE_DIR/agents/executor.md" "$TARGET_DIR/.claude/agents/"
 cp "$SOURCE_DIR/agents/code-reviewer.md" "$TARGET_DIR/.claude/agents/"
 cp "$SOURCE_DIR/agents/debugger.md" "$TARGET_DIR/.claude/agents/"
+cp "$SOURCE_DIR/agents/experimenter.md" "$TARGET_DIR/.claude/agents/"
 
 # Copy hooks and skills
 cp "$SOURCE_DIR/hooks/hooks.json" "$TARGET_DIR/.claude/hooks/"
@@ -98,7 +104,7 @@ cp "$SOURCE_DIR/skills/project-intelligence/SKILL.md" "$TARGET_DIR/.claude/skill
 
 echo ""
 echo -e "${GREEN}Done! Cortex installed into $TARGET_DIR/.claude/${NC}"
-echo -e "  14 commands, 10 agents, 1 skill, 2 hooks"
+echo -e "  19 commands, 11 agents, 1 skill, 2 hooks"
 echo ""
 echo "Quick start:"
 echo ""

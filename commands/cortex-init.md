@@ -164,6 +164,8 @@ Tell the user:
 Also add these lines to `.cortex/.gitignore`:
 ```
 active-intent.json
+active-plan.json
 db/
 memories/
+experiments/
 ```

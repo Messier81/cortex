@@ -49,5 +49,45 @@ if [ -n "$TEST_CMD" ]; then
 fi
 CONTEXT="$CONTEXT Run \`/cortex-focus\` for full context selection."
 
+STALE=$(python3 -c "
+import os, time
+try:
+    mtime = os.path.getmtime('$PROFILE_PATH')
+    print('stale' if time.time() - mtime > 30*86400 else '')
+except:
+    print('')
+" 2>/dev/null)
+if [ -n "$STALE" ]; then
+  CONTEXT="$CONTEXT [Profile is over 30 days old — run /cortex-update to refresh.]"
+fi
+
+INTENT_PATH="$(pwd)/.cortex/active-intent.json"
+if [ -f "$INTENT_PATH" ]; then
+  INTENT_STALE=$(python3 -c "
+import json, subprocess, time
+try:
+    intent = json.load(open('$INTENT_PATH'))
+    captured = intent.get('captured_at', '')
+    if captured:
+        import datetime
+        dt = datetime.datetime.fromisoformat(captured.replace('Z', '+00:00'))
+        intent_ts = dt.timestamp()
+        result = subprocess.run(['git', 'log', '-1', '--format=%ct'], capture_output=True, text=True)
+        commit_ts = int(result.stdout.strip()) if result.stdout.strip() else 0
+        print('stale' if commit_ts > intent_ts else '')
+    else:
+        print('')
+except:
+    print('')
+" 2>/dev/null)
+  if [ -n "$INTENT_STALE" ]; then
+    CONTEXT="$CONTEXT [Active intent predates latest commit — run /cortex-focus to refresh.]"
+  fi
+fi
+
 # Output the injected context as a system message
-echo "{\"type\": \"system\", \"content\": \"$CONTEXT\"}"
+python3 -c "
+import json, sys
+content = sys.argv[1]
+print(json.dumps({'type': 'system', 'content': content}))
+" "$CONTEXT"

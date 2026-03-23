@@ -22,6 +22,12 @@ The intent contains:
 - `implied_requirements`: list of specific things that need to happen
 - `context_files`: files that were identified as relevant
 
+**Staleness check**: After loading the intent, compare the `captured_at` timestamp against the most recent git commit. Run `git log -1 --format=%ct` to get the latest commit timestamp. If the intent's `captured_at` predates the latest commit, display this warning:
+
+> ⚠️ Warning: This intent was captured before your most recent commit. It may not reflect the current task. Consider running `/cortex-focus` again, or proceed with the existing intent.
+
+Then continue with verification regardless.
+
 ---
 
 ## Step 2: Gather the Diff

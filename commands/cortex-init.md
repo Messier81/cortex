@@ -165,4 +165,5 @@ Also add these lines to `.cortex/.gitignore`:
 ```
 active-intent.json
 db/
+memories/
 ```

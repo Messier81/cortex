@@ -4,7 +4,7 @@
 
 Most AI coding tools tell Claude *how* to work. Cortex tells Claude *what to know about your project* — your conventions, your architecture, your context.
 
-Three commands. Zero configuration. Works with any codebase.
+Eight commands. Zero configuration. Works with any codebase.
 
 ---
 
@@ -66,6 +66,21 @@ Compares your diff against the original intent. Checks:
 
 Returns a structured PASS/WARN/FAIL verdict.
 
+### `/cortex-update`
+Rescans only changed files and patches the profile. Faster than re-running `/cortex-init`.
+
+### `/cortex-ask <question>`
+Answers natural language questions about your project from the profile. "Where should I add a new store?" "What's the test command?"
+
+### `/cortex-remember <what>`
+Saves decisions, patterns, and gotchas to `.cortex/memories/` for future sessions.
+
+### `/cortex-recall <query>`
+Searches your saved memories by keyword.
+
+### `/cortex-risk`
+Classifies the blast radius of pending changes. Shows risk per file with mitigations.
+
 ---
 
 ## Install
@@ -111,21 +126,23 @@ Cortex is infrastructure, not a workflow. It layers underneath whatever you're a
 
 ```
 .cortex/
-├── profile.json       ← commit this (team-shared conventions)
-├── CONVENTIONS.md     ← commit this (human-readable)
-├── .gitignore         ← auto-created (ignores active-intent.json)
-└── active-intent.json ← NOT committed (per-session)
+├── profile.json       ← commit this
+├── CONVENTIONS.md     ← commit this
+├── .gitignore         ← auto-created
+├── active-intent.json ← NOT committed (per-session)
+└── memories/          ← NOT committed (personal, local)
+    └── <id>.json
 ```
 
 ---
 
 ## Roadmap
 
-**Phase 1 (current)**: Auto-derived conventions, semantic context selection, intent verification
+**Phase 1**: Auto-derived conventions, semantic context selection, intent verification
 
-**Phase 2**: Persistent project memory (SQLite), `/cortex-remember`, `/cortex-recall`, risk classification with `/cortex-risk`
+**Phase 2 (current)**: Persistent project memory (JSON files in `.cortex/memories/`), `/cortex-remember`, `/cortex-recall`, incremental updates with `/cortex-update`, natural language queries with `/cortex-ask`, risk classification with `/cortex-risk`, pre-task context injection via hooks
 
-**Phase 3**: Local embeddings for semantic memory search, cross-project learning, team-shared memories
+**Phase 3**: SQLite + embeddings for semantic memory search, cross-project learning, team-shared memories
 
 ---
 

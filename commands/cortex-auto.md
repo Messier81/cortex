@@ -27,8 +27,8 @@ If no task provided, ask: "What goal should we work toward autonomously? (e.g., 
 
 4. Run the metric command to capture **baseline**. Record as iteration 0.
 
-5. Create experiment branch: `git checkout -b cortex-auto/<task-slug>-<timestamp>`
-   - Sanitize task to slug: lowercase, spaces→hyphens, max 30 chars
+5. Create experiment branch: `git checkout -b cortex-auto/<task-slug>`
+   - Sanitize task to slug: lowercase, spaces→hyphens, strip non-alphanumeric, max 30 chars
    - If branch already exists: offer "(1) Resume from last state or (2) Delete and start fresh"
 
 6. Initialize `.cortex/experiments/active-session.json` with the session state.
@@ -132,9 +132,9 @@ If the metric command itself errors (not just returns nonzero):
 Append to `.cortex/experiments/log.json` with description, metric value, status, reflection (if discard/crash), files changed, timestamp.
 
 ### 3h. Safety Checks
-- If `consecutive_discards >= 5`: pause and tell the user:
+- If `consecutive_discards == 5` (exactly — fire once, not on every subsequent iteration): pause and tell the user:
   > "5 consecutive failures. No progress since attempt <N>. Should I continue with think-harder mode, or stop here?"
-  Wait for user response before continuing.
+  Wait for user response. If the user says continue, reset `consecutive_discards = 0` so this gate doesn't fire again immediately.
 - If `current_iteration >= max`: break the loop and go to Step 4
 
 ### 3i. Update Session State

@@ -15,7 +15,14 @@ Read `.cortex/active-plan.json`.
 
 If it doesn't exist: "No active plan found. Run `/cortex-plan <task>` to create one first."
 
-If `$ARGUMENTS` is a number, start from that step number. Otherwise, find the first step with `"status": "pending"`.
+Check if all steps already have `"status": "completed"`:
+- If yes: tell the user "All steps are already complete. Run `/cortex-review` or `/cortex-ship` to proceed." and stop.
+
+If `$ARGUMENTS` is a number N, start from step N:
+- Mark all steps before N as `"status": "skipped"` in the plan file (they were presumably done or intentionally bypassed)
+- Start execution from step N
+
+Otherwise, find the first step with `"status": "pending"` and start from there.
 
 Show the user what's about to happen:
 ```
@@ -58,7 +65,7 @@ When all steps are complete:
 
 1. Run the full test suite (use the `test` command from `.cortex/profile.json`)
 2. Run lint (use the `lint` command from profile)
-3. If both pass: commit all changes
+3. If both pass: stage and commit only the files listed across all plan steps (do not use `git add .` — use the specific file paths from each step's `files` array to avoid accidentally including unintended files)
 
 Commit message format (conventional commits):
 ```

@@ -2,7 +2,7 @@
 name: Cortex Executor
 description: Implements one plan step at a time with TDD-first discipline. Runs tests after each step. Stops and reports if a step fails twice rather than brute-forcing.
 tools: Read, Write, Edit, Glob, Grep, Bash
-model: claude-sonnet-4-5
+model: claude-sonnet-4-6
 color: green
 ---
 

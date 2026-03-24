@@ -23,7 +23,7 @@ The default branch to diff against: use `$ARGUMENTS` if provided, otherwise use 
 
 Run:
 - `git diff <branch> --name-only` — files changed vs the default branch
-- `git diff --name-only --diff-filter=A` — newly added but unstaged files
+- `git ls-files --others --exclude-standard` — truly untracked new files not yet staged
 
 Combine and deduplicate. If no files found, tell the user: "No changes detected vs `<branch>`. Profile is up to date." and stop.
 

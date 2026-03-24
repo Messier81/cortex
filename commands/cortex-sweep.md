@@ -25,8 +25,8 @@ If no task provided, ask: "What would you like to sweep? Describe the change you
 
 4. Run metric to capture **baseline**.
 
-5. Create savepoint: `git stash push -m "cortex-sweep: savepoint"`
-   Record the stash ref or HEAD commit.
+5. Record savepoint: `SAVEPOINT=$(git rev-parse HEAD)`
+   Do not stash — the working directory is already clean from Step 1.
 
 ---
 
@@ -50,27 +50,31 @@ Launching N candidates in parallel:
 
 ---
 
-## Step 3: Parallel Generation
+## Step 3: Sequential Generation
 
-Launch N **experimenter** agents IN PARALLEL (all at once, not sequentially) with:
-- The task description
-- The metric command + baseline
-- Any existing experiment log from `.cortex/experiments/log.json` (avoid known bad approaches)
-- Their assigned strategy hint
-- `think_harder: false`
-- Project conventions
+Launch N **experimenter** agents ONE AT A TIME (sequentially, not in parallel — all agents share the same working directory and simultaneous writes would corrupt results):
 
-Each agent implements its candidate independently. Collect all results.
+For each candidate slot (A, B, C, ...):
+1. Restore to savepoint: `git reset --hard $SAVEPOINT`
+2. Launch the **experimenter** agent with:
+   - The task description
+   - The metric command + baseline
+   - Any existing experiment log from `.cortex/experiments/log.json` (avoid known bad approaches)
+   - This candidate's assigned strategy hint
+   - `think_harder: false`
+   - Project conventions
+3. After the agent finishes, capture a diff of its changes: `git diff HEAD` (or note the files it changed)
+4. Do NOT commit yet — proceed to Step 4 for evaluation
 
-Store each candidate's changes temporarily — you will apply them one at a time in Step 4.
+After all agents have run, restore to savepoint before evaluation.
 
 ---
 
 ## Step 4: Evaluation Tournament
 
-For each candidate (A, B, C, ...):
+For each candidate (A, B, C, ...) using the diffs captured in Step 3:
 
-1. **Apply candidate**: Restore to savepoint, then apply this candidate's changes
+1. **Apply candidate**: Restore to savepoint (`git reset --hard $SAVEPOINT`), then re-apply this candidate's changes
 2. **Run metric**: Capture exit code + stdout
 3. **Run lint** (if lint command in profile): capture pass/fail
 4. **Count lines changed**: `git diff --stat | tail -1`

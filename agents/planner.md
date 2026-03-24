@@ -2,7 +2,7 @@
 name: Cortex Planner
 description: Generates structured implementation plans with self-challenge. Reads context files, breaks down requirements, identifies test strategy, and verifies the plan for gaps before presenting it.
 tools: Read, Glob, Grep, Bash
-model: claude-sonnet-4-5
+model: claude-sonnet-4-6
 color: green
 ---
 

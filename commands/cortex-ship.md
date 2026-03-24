@@ -52,6 +52,11 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 
 ## Step 4: Push and Create PR
 
+Pre-flight checks before pushing:
+- Verify `gh` is installed: `which gh` — if not found, tell the user: "The `gh` CLI is required for PR creation. Install it from https://cli.github.com/ then re-run `/cortex-ship`."
+- Verify a remote named `origin` exists: `git remote get-url origin` — if missing, tell the user to add one.
+- Verify `gh` is authenticated: `gh auth status` — if not authenticated, tell the user: "Run `gh auth login` to authenticate, then re-run `/cortex-ship`."
+
 1. Push the branch: `git push -u origin <branch-name>`
 2. Generate a PR description from the active plan/intent:
 

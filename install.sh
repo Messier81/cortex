@@ -100,6 +100,14 @@ cp "$SOURCE_DIR/hooks/pre-task-inject.sh" "$TARGET_DIR/.claude/hooks/"
 cp "$SOURCE_DIR/hooks/post-tool-lint.sh" "$TARGET_DIR/.claude/hooks/"
 chmod +x "$TARGET_DIR/.claude/hooks/pre-task-inject.sh"
 chmod +x "$TARGET_DIR/.claude/hooks/post-tool-lint.sh"
+
+# Rewrite hook paths to absolute paths so hooks.json works regardless of working directory
+HOOKS_INSTALL_DIR="$(cd "$TARGET_DIR/.claude/hooks" && pwd)"
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  sed -i '' "s|\.claude/hooks/|$HOOKS_INSTALL_DIR/|g" "$TARGET_DIR/.claude/hooks/hooks.json"
+else
+  sed -i "s|\.claude/hooks/|$HOOKS_INSTALL_DIR/|g" "$TARGET_DIR/.claude/hooks/hooks.json"
+fi
 cp "$SOURCE_DIR/skills/project-intelligence/SKILL.md" "$TARGET_DIR/.claude/skills/project-intelligence/"
 
 echo ""

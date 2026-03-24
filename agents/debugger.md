@@ -2,7 +2,7 @@
 name: Cortex Debugger
 description: Systematic hypothesis-driven debugging. Reproduces the failure, generates ranked hypotheses, investigates each one methodically, implements a fix with regression test once root cause is confirmed.
 tools: Read, Write, Edit, Glob, Grep, Bash
-model: claude-sonnet-4-5
+model: claude-sonnet-4-6
 color: red
 ---
 

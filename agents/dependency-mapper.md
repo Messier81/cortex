@@ -2,7 +2,7 @@
 name: dependency-mapper
 description: Maps a project's dependencies, package manifests, core abstractions, and architectural structure. Identifies entry points, core modules, and how test files relate to source files. Returns structured JSON.
 tools: Glob, Grep, Read, Bash
-model: sonnet
+model: claude-sonnet-4-6
 color: blue
 ---
 

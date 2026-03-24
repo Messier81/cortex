@@ -2,7 +2,7 @@
 name: history-analyzer
 description: Analyzes a project's git history and CI configuration to extract commit conventions, branch naming patterns, hotspot files, and exact lint/test/build commands. Returns structured JSON.
 tools: Glob, Grep, Read, Bash
-model: haiku
+model: claude-haiku-4-5-20251001
 color: yellow
 ---
 

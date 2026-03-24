@@ -41,13 +41,12 @@ If the baseline metric crashes (error, not just failure), warn: "Metric command 
 
 ---
 
-## Step 3: Create Savepoint
+## Step 3: Record Savepoint
 
-Run: `git stash push -m "cortex-experiment: savepoint before <short hypothesis>"`
+Record the current HEAD commit SHA so you can reset to it on discard:
+`SAVEPOINT=$(git rev-parse HEAD)`
 
-Or if a commit is preferred: `git commit --allow-empty -m "experiment: savepoint"`
-
-Record the savepoint ref.
+Do not stash — the working directory is already clean from Step 1.
 
 ---
 
@@ -104,12 +103,11 @@ Keep this change? [Y/n]
 ```
 
 **If KEEP:**
-- Unstash/keep the changes
-- Commit: `git commit -am "experiment: keep — <hypothesis short form>"`
+- Commit the changes: `git commit -am "experiment: keep — <hypothesis short form>"`
 - Append to `.cortex/experiments/log.json` with status `keep` and no reflection needed
 
 **If DISCARD:**
-- Restore savepoint: `git stash pop` (or `git reset --hard` to savepoint commit)
+- Restore to savepoint: `git reset --hard $SAVEPOINT` (this undoes all uncommitted file edits)
 - Write a reflection: Ask the experimenter agent (or infer from the result) to explain why this failed
 - Append to `.cortex/experiments/log.json` with status `discard` and the reflection
 

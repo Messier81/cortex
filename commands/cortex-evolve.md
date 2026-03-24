@@ -72,21 +72,26 @@ Current best: <value>  (baseline: <baseline>, improvement so far: <delta>)
 From the program database, select the **top 3 by metric** (best scores so far).
 These will be shown to all candidate agents as examples of successful approaches.
 
-### 3c. Launch Population IN PARALLEL
-Launch `population` number of **experimenter** agents SIMULTANEOUSLY, each with:
-- The optimization goal
-- The metric command + current best value
-- The program database (all attempts so far with scores) — so they avoid tried approaches
-- The top 3 inspirations explicitly highlighted: "These changes improved the metric — use them as inspiration for your approach"
-- A different strategy hint per candidate:
-  - Agent 1: `simplicity` — favor removing code
-  - Agent 2: `performance` — maximize metric movement
-  - Agent 3: `default` — balanced approach
-  - (Additional agents rotate through these strategies)
-- `think_harder: true` if generation >= 3 and no improvement in last 2 generations
-- Project conventions
+### 3c. Generate Population (Sequential)
+Launch `population` number of **experimenter** agents ONE AT A TIME (sequentially — agents share the working directory, so parallel writes would corrupt results). For each candidate:
 
-Collect all candidate results.
+1. Restore to `last_kept_commit`: `git reset --hard $LAST_KEPT_COMMIT`
+2. Launch the **experimenter** agent with:
+   - The optimization goal
+   - The metric command + current best value
+   - The program database (all attempts so far with scores) — so it avoids tried approaches
+   - The top 3 inspirations explicitly highlighted: "These changes improved the metric — use them as inspiration for your approach"
+   - A different strategy hint per candidate:
+     - Agent 1: `simplicity` — favor removing code
+     - Agent 2: `performance` — maximize metric movement
+     - Agent 3: `default` — balanced approach
+     - (Additional agents rotate through these strategies)
+   - `think_harder: true` if generation >= 3 and no improvement in last 2 generations
+   - Project conventions
+3. After the agent finishes, capture its changes as a diff
+4. Restore to `last_kept_commit` before the next agent runs
+
+After all agents have run, proceed to evaluation.
 
 ### 3d. Evaluate Population
 For each candidate:

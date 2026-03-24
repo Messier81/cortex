@@ -85,7 +85,6 @@ Save the plan JSON to `.cortex/active-plan.json`:
   "task": "<task>",
   "created_at": "<run: date -u +%Y-%m-%dT%H:%M:%SZ>",
   "status": "approved",
-  "current_step": 0,
   "requirements": [...],
   "steps": [
     {

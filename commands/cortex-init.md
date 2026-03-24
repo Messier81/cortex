@@ -159,7 +159,7 @@ Tell the user:
 - Any gaps or ambiguities (fields that are null or uncertain)
 - That they can edit `.cortex/profile.json` directly to correct anything
 - That `.cortex/profile.json` and `.cortex/CONVENTIONS.md` should be committed to the repo so teammates benefit too
-- That `.cortex/active-intent.json` and `.cortex/db/` should be in `.gitignore`
+- That `.cortex/.gitignore` (a gitignore scoped to the `.cortex/` subdirectory) is created automatically and excludes session files, memories, and experiment logs — these are intentionally personal/local and not shared with teammates
 
 Also add these lines to `.cortex/.gitignore`:
 ```

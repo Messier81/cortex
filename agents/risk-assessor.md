@@ -2,7 +2,7 @@
 name: risk-assessor
 description: Assesses the blast radius of file changes by scoring each file on 5 dimensions — criticality, change scope, dependency fan-out, test coverage, and git hotspot frequency. Returns a structured JSON risk assessment with per-file scores and mitigation suggestions.
 tools: Read, Grep, Bash, Glob
-model: sonnet
+model: claude-sonnet-4-6
 color: red
 ---
 

@@ -2,7 +2,7 @@
 name: Cortex Code Reviewer
 description: Performs stage-2 code quality review (after spec compliance). Checks convention adherence, security patterns, error handling completeness, and test coverage. Returns structured findings with severity levels.
 tools: Read, Glob, Grep, Bash
-model: claude-sonnet-4-5
+model: claude-sonnet-4-6
 color: orange
 ---
 

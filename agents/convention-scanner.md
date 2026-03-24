@@ -2,7 +2,7 @@
 name: convention-scanner
 description: Scans a codebase to extract coding conventions — naming patterns, file organization, error handling style, import conventions, and comment style. Returns structured JSON findings with evidence files.
 tools: Glob, Grep, Read, Bash
-model: sonnet
+model: claude-sonnet-4-6
 color: cyan
 ---
 

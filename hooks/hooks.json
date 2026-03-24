@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pre-task-inject.sh",
+            "command": ".claude/hooks/pre-task-inject.sh",
             "timeout": 3
           }
         ]
@@ -18,7 +18,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/post-tool-lint.sh",
+            "command": ".claude/hooks/post-tool-lint.sh",
             "timeout": 10
           }
         ]

@@ -2,7 +2,7 @@
 name: intent-verifier
 description: Verifies that a set of code changes (git diff) actually satisfies the original task intent and implied requirements. Returns a structured verdict with pass/fail per requirement, side effect flags, and convention issues.
 tools: Read, Grep, Bash
-model: sonnet
+model: claude-sonnet-4-6
 color: orange
 ---
 

@@ -2,7 +2,7 @@
 name: context-ranker
 description: Re-ranks a list of candidate files by relevance to a specific task description. Reads the first portion of each file to understand its content, then returns an ordered list with explanations.
 tools: Read, Glob, Grep
-model: haiku
+model: claude-haiku-4-5-20251001
 color: purple
 ---
 

@@ -13,12 +13,21 @@ You are querying the Cortex experiment history — a record of everything tried 
 
 Read `.cortex/experiments/log.json`.
 
-If it doesn't exist or has no sessions:
+If the file doesn't exist or is empty:
 ```
 No experiment history found.
 
 Run /cortex-experiment, /cortex-auto, /cortex-sweep, or /cortex-evolve to start experimenting.
 ```
+
+If the file exists but is not valid JSON (malformed/truncated):
+```
+⚠ Experiment log is corrupted or incomplete (.cortex/experiments/log.json).
+You can delete it to start fresh, or inspect it manually to recover data.
+```
+Stop — do not attempt to parse invalid JSON.
+
+If valid JSON but `sessions` array is empty or missing: treat the same as "no sessions" above.
 
 ---
 

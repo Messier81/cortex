@@ -2,7 +2,7 @@
 name: Cortex Experimenter
 description: Implements a single experiment — reads the task, metric, experiment history with reflections, and top successful examples, then makes exactly one targeted change. Respects the no-repeat and simplicity rules. Returns structured results.
 tools: Read, Write, Edit, Glob, Grep, Bash
-model: claude-sonnet-4-5
+model: claude-sonnet-4-6
 color: yellow
 ---
 

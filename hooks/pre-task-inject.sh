@@ -32,9 +32,16 @@ if [ -z "$HAS_ACTION" ]; then
 fi
 
 # Read all profile fields + stale check in a single python3 call.
-# Output is tab-separated: name, langs, frameworks, file_naming, test_cmd, stale_flag
-# None of these fields should contain tabs.
-IFS=$'\t' read -r PROJECT_NAME LANGUAGES FRAMEWORKS FILE_NAMING TEST_CMD STALE < <(python3 -c "
+# Output is one field per line — avoids IFS/tab collapse for empty fields
+# (e.g. projects with no frameworks). Each read -r call consumes one line.
+{
+  read -r PROJECT_NAME
+  read -r LANGUAGES
+  read -r FRAMEWORKS
+  read -r FILE_NAMING
+  read -r TEST_CMD
+  read -r STALE
+} < <(python3 -c "
 import json, os, time
 try:
     d = json.load(open('$PROFILE_PATH'))
@@ -48,9 +55,11 @@ try:
     test_cmd = ci.get('test', '')
     mtime    = os.path.getmtime('$PROFILE_PATH')
     stale    = 'stale' if time.time() - mtime > 30*86400 else ''
-    print('\t'.join([name, langs, fws, naming, test_cmd, stale]))
+    for v in [name, langs, fws, naming, test_cmd, stale]:
+        print(v)
 except:
-    print('\t\t\t\t\t')
+    for _ in range(6):
+        print('')
 " 2>/dev/null)
 
 # Build context hint

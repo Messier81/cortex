@@ -112,13 +112,17 @@ cp "$SOURCE_DIR/hooks/post-tool-lint.sh" "$TARGET_DIR/.claude/hooks/"
 chmod +x "$TARGET_DIR/.claude/hooks/pre-task-inject.sh"
 chmod +x "$TARGET_DIR/.claude/hooks/post-tool-lint.sh"
 
-# Rewrite hook paths to absolute paths so hooks.json works regardless of working directory
+# Rewrite hook paths to absolute paths so hooks.json works regardless of working directory.
+# Uses Python string.replace instead of sed to safely handle paths containing &, |, or spaces.
 HOOKS_INSTALL_DIR="$(cd "$TARGET_DIR/.claude/hooks" && pwd)"
-if [[ "$OSTYPE" == "darwin"* ]]; then
-  sed -i '' "s|\.claude/hooks/|$HOOKS_INSTALL_DIR/|g" "$TARGET_DIR/.claude/hooks/hooks.json"
-else
-  sed -i "s|\.claude/hooks/|$HOOKS_INSTALL_DIR/|g" "$TARGET_DIR/.claude/hooks/hooks.json"
-fi
+python3 -c "
+import sys
+hooks_file, old, new = sys.argv[1], sys.argv[2], sys.argv[3]
+with open(hooks_file) as f:
+    content = f.read()
+with open(hooks_file, 'w') as f:
+    f.write(content.replace(old, new))
+" "$TARGET_DIR/.claude/hooks/hooks.json" ".claude/hooks/" "$HOOKS_INSTALL_DIR/"
 cp "$SOURCE_DIR/skills/project-intelligence/SKILL.md" "$TARGET_DIR/.claude/skills/project-intelligence/"
 
 echo ""

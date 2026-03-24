@@ -19,6 +19,7 @@ Check if all steps already have `"status": "completed"`:
 - If yes: tell the user "All steps are already complete. Run `/cortex-review` or `/cortex-ship` to proceed." and stop.
 
 If `$ARGUMENTS` is a number N, start from step N:
+- Verify step N exists in the plan. If not: "Step S<N> doesn't exist. This plan has steps S1–S<max>." and stop.
 - Mark all steps before N as `"status": "skipped"` in the plan file (they were presumably done or intentionally bypassed)
 - Start execution from step N
 

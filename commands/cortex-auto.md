@@ -25,7 +25,10 @@ If no task provided, ask: "What goal should we work toward autonomously? (e.g., 
    - `--max N` — iteration cap (default: 20)
    - If no `--metric`: use `test` command from profile.json, or ask the user
 
-4. Run the metric command to capture **baseline**. Record as iteration 0.
+4. Run the metric command to capture **baseline**. If the metric command itself errors (crashes, not just returns a bad value):
+   > "The metric command failed on baseline: `<stderr>`. Fix the metric command before running."
+   Stop — do not start the session with a broken metric.
+   Record the baseline as iteration 0.
 
 5. Create experiment branch: `git checkout -b cortex-auto/<task-slug>`
    - Sanitize task to slug: lowercase, spaces→hyphens, strip non-alphanumeric, max 30 chars
@@ -33,7 +36,27 @@ If no task provided, ask: "What goal should we work toward autonomously? (e.g., 
 
 6. Record starting commit: `STARTING_COMMIT=$(git rev-parse HEAD)`. Set `LAST_KEPT_COMMIT=$STARTING_COMMIT`.
 
-7. Initialize `.cortex/experiments/active-session.json` with the session state, including `last_kept_commit: <SHA>`.
+7. Initialize `.cortex/experiments/active-session.json` with the full session state:
+   ```json
+   {
+     "id": "<ISO timestamp>",
+     "type": "auto",
+     "task": "<task>",
+     "metric_command": "<command>",
+     "baseline_value": "<value>",
+     "current_best_value": "<value>",
+     "max_iterations": 20,
+     "current_iteration": 0,
+     "consecutive_discards": 0,
+     "sub_goals": ["..."],
+     "current_sub_goal": 0,
+     "starting_commit": "<SHA>",
+     "last_kept_commit": "<SHA>",
+     "branch": "<branch-name>",
+     "status": "running"
+   }
+   ```
+   On each loop iteration, read this file at Step 3a and write back updated values at Step 3i — this ensures `consecutive_discards`, `last_kept_commit`, and iteration state survive interruption and resume.
 
 ---
 
@@ -133,8 +156,14 @@ If the metric command itself errors (not just returns nonzero):
 - Increment `consecutive_discards`
 
 ### 3g. Log the Attempt
-Append each attempt to the current session's `attempts` array in `.cortex/experiments/log.json`. On the first iteration of a new session, create the session object:
+Append each attempt to the current session's `attempts` array in `.cortex/experiments/log.json`.
 
+**File structure**: always read the existing file first, then push the new session into the `sessions` array. If the file doesn't exist, create it. Never overwrite the whole file.
+```json
+{ "sessions": [ /* existing sessions */ ] }
+```
+
+The session object to append (on session start; update `completed_at`, `status`, and `patterns_learned` at session end):
 ```json
 {
   "id": "<ISO timestamp>",

@@ -179,7 +179,7 @@ Branch: <branch-name>
 Next: /cortex-review, /cortex-ship
 ```
 
-Save to `.cortex/experiments/log.json` using `"type": "evolve"`:
+Append to `.cortex/experiments/log.json` — read existing file, push into the `sessions` array, write back. Never overwrite. Use `"type": "evolve"`:
 ```json
 {
   "id": "<ISO timestamp>",

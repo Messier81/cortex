@@ -115,7 +115,9 @@ Keep this change? [Y/n]
 
 ## Step 8: Update Experiment Log
 
-Ensure `.cortex/experiments/` directory exists. Write/append to `.cortex/experiments/log.json`:
+Ensure `.cortex/experiments/` directory exists. **Append** to `.cortex/experiments/log.json` — read the existing file first, push the new session into the `sessions` array, write back. If the file doesn't exist, create it with `{"sessions": [...]}`. Never overwrite the whole file.
+
+Session object to append:
 
 ```json
 {

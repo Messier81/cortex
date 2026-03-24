@@ -146,7 +146,7 @@ On confirmation:
 2. Apply the winner's patch: `git apply .cortex/experiments/candidate-<letter>.patch`
 3. Commit: `git commit -am "sweep: <strategy> strategy — <description>"`
 4. Delete the candidate patch files: `rm -f .cortex/experiments/candidate-*.patch`
-5. Log the session to `.cortex/experiments/log.json` using `"type": "sweep"`:
+5. Append the session to `.cortex/experiments/log.json` — read the existing file, push into the `sessions` array, write back. Never overwrite the whole file. Use `"type": "sweep"`:
    ```json
    {
      "id": "<ISO timestamp>",

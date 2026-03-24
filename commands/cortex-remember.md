@@ -35,9 +35,16 @@ Generate an ID using the current timestamp: run `date -u +%Y%m%d-%H%M%S` and use
 
 Create `.cortex/memories/` if it doesn't exist.
 
-Ensure `.cortex/.gitignore` exists and contains `memories/`. Create the file unconditionally if needed (do not require `/cortex-init` to have run first):
-- If `.cortex/.gitignore` doesn't exist: create it with `memories/` as its content
-- If it exists but doesn't contain `memories/`: append the line
+Ensure `.cortex/.gitignore` exists and contains the full exclusion set. Create the file unconditionally if needed (do not require `/cortex-init` to have run first):
+- If `.cortex/.gitignore` doesn't exist: create it with all five lines:
+  ```
+  active-intent.json
+  active-plan.json
+  db/
+  memories/
+  experiments/
+  ```
+- If it exists but is missing any of these lines: append the missing ones
 
 Write `.cortex/memories/<id>.json`:
 

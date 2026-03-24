@@ -63,7 +63,10 @@ if [ "$IS_SOURCE" = false ]; then
   exit 0
 fi
 
-# Run lint-fix silently — don't block if it fails
-eval "$LINT_FIX" > /dev/null 2>&1 || true
+# Run lint-fix silently — don't block if it fails.
+# Append the specific file path so linters like eslint/prettier only process the
+# changed file rather than the entire project (faster on every write).
+# shellcheck disable=SC2086
+eval $LINT_FIX "$FILE_PATH" > /dev/null 2>&1 || true
 
 exit 0

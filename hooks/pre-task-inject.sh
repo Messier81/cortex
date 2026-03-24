@@ -6,7 +6,7 @@
 # Read stdin (hook input JSON)
 INPUT=$(cat)
 
-# Extract the prompt text
+# Extract the prompt text (1 python3 call)
 PROMPT=$(echo "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('prompt',''))" 2>/dev/null)
 
 # Only inject if:
@@ -31,34 +31,27 @@ if [ -z "$HAS_ACTION" ]; then
   exit 0
 fi
 
-# Read all needed fields in a single python3 call
-PROFILE_DATA=$(python3 -c "
+# Read all profile fields + stale check in a single python3 call.
+# Output is tab-separated: name, langs, frameworks, file_naming, test_cmd, stale_flag
+# None of these fields should contain tabs.
+read -r PROJECT_NAME LANGUAGES FRAMEWORKS FILE_NAMING TEST_CMD STALE < <(python3 -c "
 import json, os, time
 try:
     d = json.load(open('$PROFILE_PATH'))
     proj = d.get('project', {})
     conv = d.get('conventions', {})
     ci   = d.get('ci', {}).get('commands', {})
-    name = proj.get('name', 'this project')
-    langs = ', '.join(proj.get('languages', []))
-    fws   = ', '.join(proj.get('frameworks', []))
-    naming = conv.get('naming', {}).get('files', '')
+    name     = proj.get('name', 'this project')
+    langs    = ', '.join(proj.get('languages', []))
+    fws      = ', '.join(proj.get('frameworks', []))
+    naming   = conv.get('naming', {}).get('files', '')
     test_cmd = ci.get('test', '')
-    mtime = os.path.getmtime('$PROFILE_PATH')
-    stale = 'stale' if time.time() - mtime > 30*86400 else ''
-    import sys
-    print(json.dumps({'name': name, 'langs': langs, 'fws': fws,
-                      'naming': naming, 'test_cmd': test_cmd, 'stale': stale}))
-except Exception as e:
-    print('{}')
+    mtime    = os.path.getmtime('$PROFILE_PATH')
+    stale    = 'stale' if time.time() - mtime > 30*86400 else ''
+    print('\t'.join([name, langs, fws, naming, test_cmd, stale]))
+except:
+    print('\t\t\t\t\t')
 " 2>/dev/null)
-
-PROJECT_NAME=$(echo "$PROFILE_DATA" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('name','this project'))" 2>/dev/null)
-LANGUAGES=$(echo "$PROFILE_DATA"    | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('langs',''))" 2>/dev/null)
-FRAMEWORKS=$(echo "$PROFILE_DATA"   | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('fws',''))" 2>/dev/null)
-FILE_NAMING=$(echo "$PROFILE_DATA"  | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('naming',''))" 2>/dev/null)
-TEST_CMD=$(echo "$PROFILE_DATA"     | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('test_cmd',''))" 2>/dev/null)
-STALE=$(echo "$PROFILE_DATA"        | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('stale',''))" 2>/dev/null)
 
 # Build context hint
 CONTEXT="[Cortex] Project: $PROJECT_NAME ($LANGUAGES"
@@ -75,6 +68,7 @@ if [ -n "$STALE" ]; then
   CONTEXT="$CONTEXT [Profile is over 30 days old — run /cortex-update to refresh.]"
 fi
 
+# Check if active intent is stale vs latest commit (1 python3 call)
 INTENT_PATH="$(pwd)/.cortex/active-intent.json"
 if [ -f "$INTENT_PATH" ]; then
   INTENT_STALE=$(python3 -c "
@@ -98,7 +92,7 @@ except:
   fi
 fi
 
-# Output the injected context as a system message
+# Output the injected context as a system message (1 python3 call)
 python3 -c "
 import json, sys
 content = sys.argv[1]

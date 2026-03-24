@@ -158,8 +158,11 @@ Tell the user:
 - What was detected (stack, conventions, key patterns)
 - Any gaps or ambiguities (fields that are null or uncertain)
 - That they can edit `.cortex/profile.json` directly to correct anything
-- That `.cortex/profile.json` and `.cortex/CONVENTIONS.md` should be committed to the repo so teammates benefit too
-- That `.cortex/.gitignore` (a gitignore scoped to the `.cortex/` subdirectory) is created automatically and excludes session files, memories, and experiment logs — these are intentionally personal/local and not shared with teammates
+- That these three files should be committed to the repo so teammates benefit too:
+  - `.cortex/profile.json` — the machine-readable project profile
+  - `.cortex/CONVENTIONS.md` — the human-readable conventions reference
+  - `.cortex/.gitignore` — ensures session files, memories, and experiment logs stay local on every teammate's machine
+- That all other `.cortex/` files (sessions, memories, experiments) are local-only and excluded by `.cortex/.gitignore`
 
 Also add these lines to `.cortex/.gitignore`:
 ```

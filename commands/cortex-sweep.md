@@ -133,18 +133,51 @@ Metric: baseline 450kb → 380kb (-15.6%)
 
 ## Step 7: Apply Winner
 
-Apply the winning candidate's changes to the codebase.
+Ask the user for confirmation before touching the working tree:
 
-Commit: `git commit -am "sweep: <strategy> strategy — <description>"`
+```
+Apply winner (Candidate <X>, <strategy> strategy) and discard others? [Y/n]
+```
 
-If there are cross-check warnings, remind the user to review before merging.
-
-Ask: "Apply winner (Candidate B) and discard others? [Y/n]"
+If there are cross-check warnings from Step 5, surface them here before the user decides.
 
 On confirmation:
-- Apply the winner
-- Discard all other candidates (already reset in evaluation)
-- Log the session to `.cortex/experiments/log.json` with all candidates' results
+1. Restore to savepoint: `git reset --hard $SAVEPOINT`
+2. Apply the winner's patch: `git apply .cortex/experiments/candidate-<letter>.patch`
+3. Commit: `git commit -am "sweep: <strategy> strategy — <description>"`
+4. Delete the candidate patch files: `rm -f .cortex/experiments/candidate-*.patch`
+5. Log the session to `.cortex/experiments/log.json` using `"type": "sweep"`:
+   ```json
+   {
+     "id": "<ISO timestamp>",
+     "type": "sweep",
+     "task": "<task>",
+     "metric_command": "<command>",
+     "baseline": "<value>",
+     "final_value": "<winner metric>",
+     "started_at": "<ISO timestamp>",
+     "completed_at": "<ISO timestamp>",
+     "status": "completed",
+     "attempts": [
+       {
+         "iteration": 1,
+         "description": "<candidate description>",
+         "metric_value": "<value>",
+         "status": "keep | discard",
+         "strategy": "<simplicity|performance|readability>",
+         "reflection": "<null if kept, reason if discarded>",
+         "files_changed": ["<paths>"],
+         "timestamp": "<ISO timestamp>"
+       }
+     ],
+     "patterns_learned": []
+   }
+   ```
+
+On rejection (user says N):
+- Restore to savepoint: `git reset --hard $SAVEPOINT`
+- Delete patch files: `rm -f .cortex/experiments/candidate-*.patch`
+- Tell the user: "No changes applied. Run `/cortex-sweep` again or try `/cortex-auto` for iterative improvement."
 
 ---
 

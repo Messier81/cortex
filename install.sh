@@ -54,6 +54,17 @@ else
   SOURCE_DIR="$TMPDIR_CORTEX/cortex"
 fi
 
+# Warn on reinstall
+if [ -f "$TARGET_DIR/.claude/commands/cortex-init.md" ]; then
+  echo -e "${YELLOW}Cortex is already installed in this project.${NC}"
+  printf "Overwrite existing Cortex files? [y/N] "
+  read -r CONFIRM
+  if [[ "$CONFIRM" != "y" && "$CONFIRM" != "Y" ]]; then
+    echo "Aborted. Existing installation unchanged."
+    exit 0
+  fi
+fi
+
 # Create target directories
 mkdir -p "$TARGET_DIR/.claude/commands"
 mkdir -p "$TARGET_DIR/.claude/agents"

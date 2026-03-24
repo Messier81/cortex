@@ -133,7 +133,39 @@ If the metric command itself errors (not just returns nonzero):
 - Increment `consecutive_discards`
 
 ### 3g. Log the Attempt
-Append to `.cortex/experiments/log.json` with description, metric value, status, reflection (if discard/crash), files changed, timestamp.
+Append each attempt to the current session's `attempts` array in `.cortex/experiments/log.json`. On the first iteration of a new session, create the session object:
+
+```json
+{
+  "id": "<ISO timestamp>",
+  "type": "auto",
+  "task": "<task>",
+  "metric_command": "<command>",
+  "metric_type": "numeric_lower | numeric_higher | pass_fail",
+  "baseline": "<value>",
+  "branch": "<branch-name>",
+  "started_at": "<ISO timestamp>",
+  "completed_at": null,
+  "status": "running",
+  "attempts": [],
+  "patterns_learned": []
+}
+```
+
+Each attempt entry:
+```json
+{
+  "iteration": 1,
+  "description": "<what the agent changed>",
+  "metric_value": "<value>",
+  "status": "keep | discard | crash",
+  "reflection": "<why it failed, or null if kept>",
+  "files_changed": ["<paths>"],
+  "timestamp": "<ISO timestamp>"
+}
+```
+
+At session end: set `completed_at`, update `status` to `"completed"` or `"interrupted"`, and populate `patterns_learned`.
 
 ### 3h. Safety Checks
 - If `consecutive_discards == 5` (exactly — fire once, not on every subsequent iteration): pause and tell the user:

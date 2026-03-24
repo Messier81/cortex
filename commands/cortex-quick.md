@@ -62,7 +62,7 @@ If tests fail, fix the issue before committing. If lint fails and a lint-fix com
 ## Step 5: Scope Check
 
 After implementing, count lines changed. If more than ~30 lines changed, tell the user:
-> "This grew larger than expected (<N> lines changed). Changes are committed. Consider running `/cortex-review` before pushing."
+> "This grew larger than expected (<N> lines changed). Consider running `/cortex-review` before pushing."
 
 ---
 

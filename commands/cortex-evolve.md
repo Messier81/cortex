@@ -179,4 +179,32 @@ Branch: <branch-name>
 Next: /cortex-review, /cortex-ship
 ```
 
-Save patterns to `log.json` session entry.
+Save to `.cortex/experiments/log.json` using `"type": "evolve"`:
+```json
+{
+  "id": "<ISO timestamp>",
+  "type": "evolve",
+  "task": "<goal>",
+  "metric_command": "<command>",
+  "baseline": "<value>",
+  "final_value": "<current_best>",
+  "target": "<target or null>",
+  "started_at": "<ISO timestamp>",
+  "completed_at": "<ISO timestamp>",
+  "status": "completed | target_met | interrupted",
+  "attempts": [
+    {
+      "iteration": 1,
+      "generation": 1,
+      "description": "<what the agent changed>",
+      "metric_value": "<value>",
+      "status": "keep | discard",
+      "strategy": "<simplicity|performance|default>",
+      "reflection": null,
+      "files_changed": ["<paths>"],
+      "timestamp": "<ISO timestamp>"
+    }
+  ],
+  "patterns_learned": []
+}
+```

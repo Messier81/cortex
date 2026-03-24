@@ -9,8 +9,8 @@ INPUT=$(cat)
 # Extract tool name
 TOOL=$(echo "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('tool_name',''))" 2>/dev/null)
 
-# Only run after Write or Edit
-if [[ "$TOOL" != "Write" && "$TOOL" != "Edit" ]]; then
+# Only run after Write, Edit, or MultiEdit
+if [[ "$TOOL" != "Write" && "$TOOL" != "Edit" && "$TOOL" != "MultiEdit" ]]; then
   exit 0
 fi
 

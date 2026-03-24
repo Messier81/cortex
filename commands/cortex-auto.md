@@ -31,7 +31,9 @@ If no task provided, ask: "What goal should we work toward autonomously? (e.g., 
    - Sanitize task to slug: lowercase, spaces→hyphens, strip non-alphanumeric, max 30 chars
    - If branch already exists: offer "(1) Resume from last state or (2) Delete and start fresh"
 
-6. Initialize `.cortex/experiments/active-session.json` with the session state.
+6. Record starting commit: `STARTING_COMMIT=$(git rev-parse HEAD)`. Set `LAST_KEPT_COMMIT=$STARTING_COMMIT`.
+
+7. Initialize `.cortex/experiments/active-session.json` with the session state, including `last_kept_commit: <SHA>`.
 
 ---
 
@@ -106,6 +108,8 @@ If the metric command itself errors (not just returns nonzero):
   Metric: <before> → <after>
 ```
 - Update `current_best_value` in active-session.json
+- Update `last_kept_commit` to the current HEAD: `LAST_KEPT_COMMIT=$(git rev-parse HEAD)`
+- Save `last_kept_commit` back to active-session.json
 - Set `consecutive_discards = 0`
 - Check if current sub-goal is now satisfied → if yes, advance to next sub-goal
 
@@ -114,7 +118,7 @@ If the metric command itself errors (not just returns nonzero):
 ✗ Attempt N: DISCARD — <description>
   Metric: <before> → <after> (no improvement)
 ```
-- `git reset --hard` to last kept commit (or starting commit if nothing kept yet)
+- `git reset --hard $LAST_KEPT_COMMIT` (resets to the last successful state; `$LAST_KEPT_COMMIT` was initialized to `$STARTING_COMMIT` in Step 1)
 - Write a reflection: ask the experimenter agent what it learned from this failure
   Format: "Tried <X> because <Y>. Failed because <Z>. Learned: <constraint/insight>."
 - Increment `consecutive_discards`
@@ -124,7 +128,7 @@ If the metric command itself errors (not just returns nonzero):
 ✗ Attempt N: CRASH — <description>
   Error: <stderr summary>
 ```
-- `git reset --hard` to last kept commit
+- `git reset --hard $LAST_KEPT_COMMIT`
 - Write reflection: "Crashed with: <error>. The change was fundamentally broken in this environment."
 - Increment `consecutive_discards`
 

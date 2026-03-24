@@ -63,9 +63,9 @@ Launch the **executor** agent with:
 
 When all steps are complete:
 
-1. Run the full test suite (use the `test` command from `.cortex/profile.json`)
-2. Run lint (use the `lint` command from profile)
-3. If both pass: stage and commit only the files listed across all plan steps (do not use `git add .` — use the specific file paths from each step's `files` array to avoid accidentally including unintended files)
+1. Run the full test suite — use the `test` command from `.cortex/profile.json` if available; if the profile doesn't exist, skip with a note: "No profile found — skipping automated test run. Run `/cortex-init` to enable."
+2. Run lint — use the `lint` command from profile if available; same skip behavior as above.
+3. If both pass (or were skipped): stage and commit only the files listed across all plan steps (do not use `git add .` — use the specific file paths from each step's `files` array to avoid accidentally including unintended files)
 
 Commit message format (conventional commits):
 ```

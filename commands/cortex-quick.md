@@ -66,7 +66,21 @@ After implementing, count lines changed. If more than ~30 lines changed, tell th
 
 ---
 
-## Step 6: Commit
+## Step 6: Save Intent
+
+Write `.cortex/active-intent.json` so `/cortex-verify` and `/cortex-review` can reference the task:
+```json
+{
+  "task": "<task>",
+  "implied_requirements": ["<what was changed and why>"],
+  "context_files": ["<list of files touched>"],
+  "captured_at": "<run: date -u +%Y-%m-%dT%H:%M:%SZ>"
+}
+```
+
+---
+
+## Step 7: Commit
 
 Commit with a concise message:
 ```
@@ -80,5 +94,5 @@ Where `<type>` is: `fix`, `feat`, `chore`, `docs`, or `refactor` based on the ta
 Tell the user:
 ```
 Done. <N> lines changed across <M> files. Committed as <hash>.
-Run `/cortex-ship` to push and open a PR.
+Run `/cortex-review` to verify, or `/cortex-ship` to push and open a PR.
 ```

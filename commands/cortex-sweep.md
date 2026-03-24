@@ -63,18 +63,22 @@ For each candidate slot (A, B, C, ...):
    - This candidate's assigned strategy hint
    - `think_harder: false`
    - Project conventions
-3. After the agent finishes, capture a diff of its changes: `git diff HEAD` (or note the files it changed)
-4. Do NOT commit yet — proceed to Step 4 for evaluation
+3. After the agent finishes, save its changes as a patch file:
+   `git diff > .cortex/experiments/candidate-<letter>.patch`
+   (e.g. `candidate-a.patch`, `candidate-b.patch`)
+   If the patch is empty, the agent made no changes — mark that candidate as failed.
+4. Do NOT commit. The patch file is the persistent record of this candidate's work.
 
-After all agents have run, restore to savepoint before evaluation.
+After all agents have run, restore to savepoint: `git reset --hard $SAVEPOINT`
 
 ---
 
 ## Step 4: Evaluation Tournament
 
-For each candidate (A, B, C, ...) using the diffs captured in Step 3:
+For each candidate (A, B, C, ...) using the patch files saved in Step 3:
 
-1. **Apply candidate**: Restore to savepoint (`git reset --hard $SAVEPOINT`), then re-apply this candidate's changes
+1. **Restore and apply**: `git reset --hard $SAVEPOINT && git apply .cortex/experiments/candidate-<letter>.patch`
+   If `git apply` fails, mark that candidate as failed (patch didn't apply cleanly).
 2. **Run metric**: Capture exit code + stdout
 3. **Run lint** (if lint command in profile): capture pass/fail
 4. **Count lines changed**: `git diff --stat | tail -1`

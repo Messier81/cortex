@@ -34,7 +34,7 @@ fi
 # Read all profile fields + stale check in a single python3 call.
 # Output is tab-separated: name, langs, frameworks, file_naming, test_cmd, stale_flag
 # None of these fields should contain tabs.
-read -r PROJECT_NAME LANGUAGES FRAMEWORKS FILE_NAMING TEST_CMD STALE < <(python3 -c "
+IFS=$'\t' read -r PROJECT_NAME LANGUAGES FRAMEWORKS FILE_NAMING TEST_CMD STALE < <(python3 -c "
 import json, os, time
 try:
     d = json.load(open('$PROFILE_PATH'))

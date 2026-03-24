@@ -27,7 +27,9 @@ If no goal provided, ask: "What would you like to optimize? (e.g., 'Reduce bundl
 
 4. Run metric to capture **baseline**. Verify it outputs a parseable number. If not: "The metric command must output a number to stdout. Example: `echo 42` or `wc -l src/*.ts | tail -1 | awk '{print $1}'`"
 
-5. Create branch: `git checkout -b cortex-evolve/<goal-slug>-<timestamp>`
+5. Create branch: `git checkout -b cortex-evolve/<goal-slug>`
+   - Sanitize goal to slug: lowercase, spaces→hyphens, strip non-alphanumeric, max 30 chars
+   - If branch already exists: offer "(1) Resume from last kept commit or (2) Delete and start fresh"
 
 6. If target is provided and baseline already meets it: "Baseline already meets the target. Nothing to optimize."
 

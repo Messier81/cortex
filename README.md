@@ -37,12 +37,16 @@ Then in any project:
 ### Into a specific project
 
 ```bash
-# From the web (run from your project root)
+# Easiest: run this from inside your project directory
+cd your-project
 curl -fsSL https://raw.githubusercontent.com/Messier81/cortex/main/install.sh | bash
+```
 
-# Or clone and install locally
+Or clone first and point it at a project:
+
+```bash
 git clone https://github.com/Messier81/cortex
-cd cortex && ./install.sh /path/to/your/project
+cd cortex && ./install.sh /absolute/path/to/your-project
 ```
 
 ---

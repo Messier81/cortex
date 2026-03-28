@@ -2,12 +2,11 @@
 # Cortex install script
 # Installs Cortex commands into any project's .claude/ directory
 # Usage: ./install.sh [path/to/project]
-#        curl -fsSL https://raw.githubusercontent.com/cortex-cc/cortex/main/install.sh | bash
+#        curl -fsSL https://raw.githubusercontent.com/Messier81/cortex/main/install.sh | bash
 
 set -e
 
 CORTEX_REPO="https://github.com/Messier81/cortex"
-CORTEX_RAW="https://raw.githubusercontent.com/Messier81/cortex/main"
 
 # Colors
 GREEN='\033[0;32m'
@@ -16,8 +15,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 
 echo ""
-echo -e "${BLUE}  Cortex — Adaptive Project Intelligence${NC}"
-echo -e "${BLUE}  for Claude Code${NC}"
+echo -e "${BLUE}  Cortex — Experiment Lab for Claude Code${NC}"
 echo ""
 
 # Determine target directory
@@ -40,7 +38,7 @@ if [ -f "$SCRIPT_DIR/commands/cortex-init.md" ]; then
   SOURCE_DIR="$SCRIPT_DIR"
   echo -e "${YELLOW}Using local files from $SOURCE_DIR${NC}"
 else
-  # Remote install — clone the repo (more reliable than downloading individual files)
+  # Remote install — clone the repo
   echo "Cloning Cortex from GitHub..."
   TMPDIR_CORTEX=$(mktemp -d)
   trap "rm -rf $TMPDIR_CORTEX" EXIT
@@ -68,47 +66,29 @@ fi
 # Create target directories
 mkdir -p "$TARGET_DIR/.claude/commands"
 mkdir -p "$TARGET_DIR/.claude/agents"
-mkdir -p "$TARGET_DIR/.claude/skills/project-intelligence"
 mkdir -p "$TARGET_DIR/.claude/hooks"
 
 # Copy commands
-cp "$SOURCE_DIR/commands/cortex-init.md" "$TARGET_DIR/.claude/commands/"
-cp "$SOURCE_DIR/commands/cortex-focus.md" "$TARGET_DIR/.claude/commands/"
-cp "$SOURCE_DIR/commands/cortex-verify.md" "$TARGET_DIR/.claude/commands/"
-cp "$SOURCE_DIR/commands/cortex-update.md" "$TARGET_DIR/.claude/commands/"
-cp "$SOURCE_DIR/commands/cortex-ask.md" "$TARGET_DIR/.claude/commands/"
-cp "$SOURCE_DIR/commands/cortex-remember.md" "$TARGET_DIR/.claude/commands/"
-cp "$SOURCE_DIR/commands/cortex-recall.md" "$TARGET_DIR/.claude/commands/"
-cp "$SOURCE_DIR/commands/cortex-risk.md" "$TARGET_DIR/.claude/commands/"
-cp "$SOURCE_DIR/commands/cortex-plan.md" "$TARGET_DIR/.claude/commands/"
-cp "$SOURCE_DIR/commands/cortex-build.md" "$TARGET_DIR/.claude/commands/"
-cp "$SOURCE_DIR/commands/cortex-review.md" "$TARGET_DIR/.claude/commands/"
-cp "$SOURCE_DIR/commands/cortex-debug.md" "$TARGET_DIR/.claude/commands/"
-cp "$SOURCE_DIR/commands/cortex-ship.md" "$TARGET_DIR/.claude/commands/"
-cp "$SOURCE_DIR/commands/cortex-quick.md" "$TARGET_DIR/.claude/commands/"
-cp "$SOURCE_DIR/commands/cortex-auto.md" "$TARGET_DIR/.claude/commands/"
-cp "$SOURCE_DIR/commands/cortex-sweep.md" "$TARGET_DIR/.claude/commands/"
-cp "$SOURCE_DIR/commands/cortex-evolve.md" "$TARGET_DIR/.claude/commands/"
+cp "$SOURCE_DIR/commands/cortex-init.md"       "$TARGET_DIR/.claude/commands/"
+cp "$SOURCE_DIR/commands/cortex-build.md"      "$TARGET_DIR/.claude/commands/"
+cp "$SOURCE_DIR/commands/cortex-auto.md"       "$TARGET_DIR/.claude/commands/"
+cp "$SOURCE_DIR/commands/cortex-sweep.md"      "$TARGET_DIR/.claude/commands/"
+cp "$SOURCE_DIR/commands/cortex-evolve.md"     "$TARGET_DIR/.claude/commands/"
 cp "$SOURCE_DIR/commands/cortex-experiment.md" "$TARGET_DIR/.claude/commands/"
-cp "$SOURCE_DIR/commands/cortex-log.md" "$TARGET_DIR/.claude/commands/"
+cp "$SOURCE_DIR/commands/cortex-log.md"        "$TARGET_DIR/.claude/commands/"
+cp "$SOURCE_DIR/commands/cortex-reflect.md"    "$TARGET_DIR/.claude/commands/"
+cp "$SOURCE_DIR/commands/cortex-digest.md"     "$TARGET_DIR/.claude/commands/"
 
 # Copy agents
-cp "$SOURCE_DIR/agents/convention-scanner.md" "$TARGET_DIR/.claude/agents/"
-cp "$SOURCE_DIR/agents/dependency-mapper.md" "$TARGET_DIR/.claude/agents/"
-cp "$SOURCE_DIR/agents/history-analyzer.md" "$TARGET_DIR/.claude/agents/"
-cp "$SOURCE_DIR/agents/context-ranker.md" "$TARGET_DIR/.claude/agents/"
-cp "$SOURCE_DIR/agents/intent-verifier.md" "$TARGET_DIR/.claude/agents/"
-cp "$SOURCE_DIR/agents/risk-assessor.md" "$TARGET_DIR/.claude/agents/"
-cp "$SOURCE_DIR/agents/planner.md" "$TARGET_DIR/.claude/agents/"
-cp "$SOURCE_DIR/agents/executor.md" "$TARGET_DIR/.claude/agents/"
-cp "$SOURCE_DIR/agents/code-reviewer.md" "$TARGET_DIR/.claude/agents/"
-cp "$SOURCE_DIR/agents/debugger.md" "$TARGET_DIR/.claude/agents/"
-cp "$SOURCE_DIR/agents/experimenter.md" "$TARGET_DIR/.claude/agents/"
+cp "$SOURCE_DIR/agents/convention-scanner.md"  "$TARGET_DIR/.claude/agents/"
+cp "$SOURCE_DIR/agents/dependency-mapper.md"   "$TARGET_DIR/.claude/agents/"
+cp "$SOURCE_DIR/agents/history-analyzer.md"    "$TARGET_DIR/.claude/agents/"
+cp "$SOURCE_DIR/agents/experimenter.md"        "$TARGET_DIR/.claude/agents/"
 
-# Copy hooks and skills
-cp "$SOURCE_DIR/hooks/hooks.json" "$TARGET_DIR/.claude/hooks/"
-cp "$SOURCE_DIR/hooks/pre-task-inject.sh" "$TARGET_DIR/.claude/hooks/"
-cp "$SOURCE_DIR/hooks/post-tool-lint.sh" "$TARGET_DIR/.claude/hooks/"
+# Copy hooks
+cp "$SOURCE_DIR/hooks/hooks.json"              "$TARGET_DIR/.claude/hooks/"
+cp "$SOURCE_DIR/hooks/pre-task-inject.sh"      "$TARGET_DIR/.claude/hooks/"
+cp "$SOURCE_DIR/hooks/post-tool-lint.sh"       "$TARGET_DIR/.claude/hooks/"
 chmod +x "$TARGET_DIR/.claude/hooks/pre-task-inject.sh"
 chmod +x "$TARGET_DIR/.claude/hooks/post-tool-lint.sh"
 
@@ -123,10 +103,8 @@ with open(hooks_file) as f:
 with open(hooks_file, 'w') as f:
     f.write(content.replace(old, new))
 " "$TARGET_DIR/.claude/hooks/hooks.json" ".claude/hooks/" "$HOOKS_INSTALL_DIR/"
-cp "$SOURCE_DIR/skills/project-intelligence/SKILL.md" "$TARGET_DIR/.claude/skills/project-intelligence/"
 
 # Register global hooks in ~/.claude/settings.json using absolute paths.
-# Replaces any existing ${CLAUDE_PLUGIN_ROOT} references, or adds hooks if absent.
 GLOBAL_SETTINGS="$HOME/.claude/settings.json"
 CORTEX_HOOKS_DIR="$(cd "$SOURCE_DIR/hooks" && pwd)"
 
@@ -161,30 +139,27 @@ fi
 
 echo ""
 echo -e "${GREEN}Done! Cortex installed into $TARGET_DIR/.claude/${NC}"
-echo -e "  19 commands, 11 agents, 1 skill, 2 hooks"
+echo -e "  9 commands · 4 agents · 2 hooks"
 echo ""
 echo "Quick start:"
 echo ""
 echo -e "  1. Open Claude Code in ${GREEN}$TARGET_DIR${NC}"
-echo -e "  2. Run ${GREEN}/cortex-init${NC} to analyze your project (one-time)"
-echo -e "  3. Run ${GREEN}/cortex-plan <task>${NC} to plan your next feature"
-echo -e "  4. Run ${GREEN}/cortex-build${NC} to execute the plan step by step"
-echo -e "  5. Run ${GREEN}/cortex-ship${NC} to review, commit, push, and open a PR"
+echo -e "  2. Run ${GREEN}/cortex-init${NC} to scan your project (one-time setup)"
+echo -e "  3. Run ${GREEN}/cortex-auto${NC} to start autonomous improvement experiments"
 echo ""
-echo "All commands:"
-echo -e "  ${GREEN}/cortex-plan${NC}     Plan a task with structured requirements and TDD steps"
-echo -e "  ${GREEN}/cortex-build${NC}    Execute the active plan step by step"
-echo -e "  ${GREEN}/cortex-review${NC}   Two-stage review: spec compliance + code quality"
-echo -e "  ${GREEN}/cortex-debug${NC}    Systematic hypothesis-driven debugging"
-echo -e "  ${GREEN}/cortex-ship${NC}     Push branch and create a PR"
-echo -e "  ${GREEN}/cortex-quick${NC}    Fast path for small tasks"
-echo -e "  ${GREEN}/cortex-focus${NC}    Find the right files for a task"
-echo -e "  ${GREEN}/cortex-verify${NC}   Verify changes against original intent"
-echo -e "  ${GREEN}/cortex-risk${NC}     Classify blast radius of pending changes"
-echo -e "  ${GREEN}/cortex-update${NC}   Rescan changed files and patch the profile"
-echo -e "  ${GREEN}/cortex-ask${NC}      Ask questions about your project"
-echo -e "  ${GREEN}/cortex-remember${NC} Save decisions and gotchas for future sessions"
-echo -e "  ${GREEN}/cortex-recall${NC}   Search saved memories by keyword"
+echo "Commands:"
+echo -e "  ${GREEN}/cortex-init${NC}        Scan project, build profile (run once; --update to refresh)"
+echo -e "  ${GREEN}/cortex-build${NC}       Execute a plan step by step with context isolation"
+echo -e "  ${GREEN}/cortex-auto${NC}        Autonomous experiment loop with reflexion memory"
+echo -e "  ${GREEN}/cortex-sweep${NC}       Best-of-N: generate N candidates, pick the winner"
+echo -e "  ${GREEN}/cortex-evolve${NC}      Evolutionary optimization across generations"
+echo -e "  ${GREEN}/cortex-experiment${NC}  Single hypothesis → measure → keep or discard"
+echo -e "  ${GREEN}/cortex-log${NC}         View experiment history (--patterns for learnings)"
+echo -e "  ${GREEN}/cortex-reflect${NC}     Full cross-session intelligence synthesis"
+echo -e "  ${GREEN}/cortex-digest${NC}      Quick-reference digest card (daily use)"
+echo ""
+echo -e "  ${YELLOW}Tip:${NC} Install pctx MCP server for decision tracking and cross-session intelligence."
+echo -e "       Cortex works fully without it, but pctx unlocks /cortex-reflect and /cortex-digest."
 echo ""
 echo -e "Commit ${GREEN}.cortex/profile.json${NC} and ${GREEN}.cortex/CONVENTIONS.md${NC} to share with your team."
 echo ""

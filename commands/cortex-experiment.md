@@ -168,3 +168,11 @@ Reflection: <why it failed>
 Run /cortex-log to see full experiment history.
 Run /cortex-auto to run experiments autonomously.
 ```
+
+### Persist to pctx (if available)
+
+Check if pctx tools are available by attempting `pctx_list`. If available:
+- If **KEPT**: call `pctx_new` with `record_type: "experience"`, title `"Experiment kept: <hypothesis-slug>"`, body summarizing what worked and why, tags from hypothesis keywords + `["cortex-experiment"]`
+- If **DISCARDED**: call `pctx_new` with `record_type: "experience"`, title `"Experiment failed: <hypothesis-slug>"`, body containing the reflection (why it failed, what was learned), tags + `["cortex-experiment", "failed"]`
+
+If pctx is not available, the result is saved only to `log.json` (fully functional without it).

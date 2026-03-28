@@ -20,6 +20,8 @@ If no task provided, ask: "What goal should we work toward autonomously? (e.g., 
 
 2. Load `.cortex/profile.json` for project conventions and default metric command.
 
+   **pctx (if available)**: call `pctx_search` with the task keywords to find prior experiment experiences on similar tasks. If any `experience` records are found, pass them to the curriculum decomposition step as "prior learnings" so the sub-goal ordering avoids already-failed approaches.
+
 3. Parse arguments:
    - `--metric "<command>"` — the measurement command (exit code + optional numeric stdout)
    - `--max N` — iteration cap (default: 20)
@@ -100,12 +102,18 @@ Read `.cortex/experiments/active-session.json` for current state.
 Load `.cortex/experiments/log.json` for the full history of this session.
 
 ### 3b. Prepare Context for Experimenter
+
+**Context compression rule**: Pass only what the experimenter needs — not the full log. As iterations accumulate, full logs cause context rot and degrade quality.
+
 - Current sub-goal description
 - Metric command + current best value
-- Full experiment log WITH reflections (not just descriptions)
-- **Top 3 KEEPs** as "inspirations" (best-shot context — show what worked)
+- **Last 5 attempt summaries only** (not the full log): each summary = 2 lines: description + outcome/reflection
+- **Top 3 KEEPs** as "inspirations" (best-shot context — show what worked, verbatim)
+- **Synthesized constraints** (not raw reflections): a bullet list of "do not try X because Y" inferred from all DISCARD reflections so far. Cap at 10 bullets.
 - `think_harder: true` if consecutive_discards >= 3
 - Project conventions
+
+**After iteration 10**: replace the last-5-summaries with a single synthesized paragraph: "In N iterations, we've tried [categories]. What works: [patterns]. What fails: [patterns]. Remaining approaches not yet tried: [list]."
 
 ### 3c. Launch Experimenter Agent
 Launch the **experimenter** agent with the above context.
@@ -243,6 +251,18 @@ Save to `patterns_learned` in the session's log entry.
 ...
 Run /cortex-log --patterns to see patterns across all sessions.
 ```
+
+### Persist to pctx (if available)
+
+Check if pctx tools are available by attempting `pctx_list`. If available:
+- For each of the top 3 patterns learned, call `pctx_new` with:
+  - `record_type: "experience"`
+  - `title`: a short label like "Experiment: <task-slug> — <pattern headline>"`
+  - `body`: the full pattern text
+  - `tags`: task keywords + `["cortex-experiment", "auto"]`
+- This makes experiment learnings discoverable via `pctx_search` in future sessions across any project.
+
+If pctx is not available, patterns are saved only in `log.json` (still fully functional).
 
 ### Final Status
 ```

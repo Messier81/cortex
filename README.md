@@ -1,251 +1,165 @@
 # Cortex
 
-**Autonomous experimentation and project intelligence for Claude Code.**
+> Autonomous experiment loops and project intelligence for Claude Code.
 
-Give Cortex a goal and a metric. It loops on its own — making changes, measuring results, keeping improvements, learning from failures — until the goal is met. It also scans your project once so Claude never starts cold again.
+Cortex gives Claude two things: **permanent memory of your project** (conventions, architecture, CI commands — scanned once, used forever), and an **autonomous experiment engine** that improves your code against any metric while you sleep.
 
-**9 commands. 4 agents. 2 hooks. Zero configuration.**
+```bash
+curl -fsSL https://raw.githubusercontent.com/Messier81/cortex/main/install.sh | bash
+```
 
 ---
 
-## The Problem
+## The idea
 
-Claude Code starts cold every session. It doesn't know your naming conventions, test locations, CI commands, or architecture. So you repeat yourself or write a CLAUDE.md that goes stale.
+You give Cortex a goal and a way to measure it:
 
-And when you want to improve something measurable — reduce errors, shrink bundle size, improve coverage — you're stuck running the same manual loop: change, test, revert, repeat. There's no way to hand that off.
+```
+/cortex-auto "Fix all TypeScript strict errors" --metric "npx tsc --noEmit 2>&1 | grep -c error"
+```
 
-Cortex fixes both.
+It runs a loop — make a change, measure, keep or discard, write a reflection on why it failed, try again — until the goal is met or you hit the limit. Each failure teaches the next attempt something specific about *this* codebase.
+
+```
+Baseline: 47 errors
+
+✓  Attempt 1  Add null checks in useAuth          47 → 31 errors
+✗  Attempt 2  Add `as unknown as T` casts         31 → 33 errors  ← regression
+              Reflection: type assertions hide errors downstream. avoid them.
+✓  Attempt 3  Explicit return types in services   31 → 18 errors
+✓  Attempt 4  Optional chaining in UserProfile    18 → 9 errors
+...
+✓  Goal met after 11 attempts. 47 → 0 errors.
+```
+
+Not just pass/fail — it builds causal understanding of why things fail in your specific codebase.
 
 ---
 
 ## Install
 
 ```bash
+# Into your project
 cd your-project
 curl -fsSL https://raw.githubusercontent.com/Messier81/cortex/main/install.sh | bash
-```
 
-Or clone and point at a project:
-
-```bash
+# Or clone first
 git clone https://github.com/Messier81/cortex
 cd cortex && ./install.sh /path/to/your-project
 ```
 
-Then run once per project:
+Then scan your project once:
 
 ```bash
 /cortex-init
 ```
 
-> **Tip:** Install the [pctx MCP server](https://github.com/Messier81/pctx) for decision tracking and cross-session intelligence. Cortex works fully without it, but pctx unlocks `/cortex-reflect` and `/cortex-digest`.
+Commit `.cortex/profile.json` and `.cortex/CONVENTIONS.md` — your whole team benefits.
+
+> Pair with [pctx](https://github.com/Messier81/pctx) for decision tracking and cross-session intelligence. Cortex works without it, but pctx unlocks `/cortex-reflect` and `/cortex-digest`.
 
 ---
 
-## What Cortex Does
-
-### Project Intelligence
-
-Scans your codebase once and auto-derives everything Claude needs: naming conventions, test locations, CI commands, core abstractions, git style, and now — **which files are highest-risk to change** (coupling hotspots detected from import analysis and git history).
-
-Stores everything in `.cortex/profile.json` and `.cortex/CONVENTIONS.md`. Commit both — your whole team benefits.
-
-A hook fires on every prompt and injects a brief context summary automatically. Claude knows your project before you say anything.
-
-### Autonomous Experimentation
-
-Three modes for running experiments:
-
-**`/cortex-auto`** — the main loop. Give it a task and a metric command. It runs autonomously: make a change, measure, keep or discard, reflect on why failures happened, try again. Runs until the goal is met or you hit `--max` iterations.
-
-**`/cortex-sweep`** — best-of-N. Generates N candidates simultaneously with different strategies (simplicity, performance, readability), evaluates all, picks the winner via tournament selection. Cross-checks candidates for behavioral disagreements.
-
-**`/cortex-evolve`** — evolutionary optimization. Each generation spawns N candidates inspired by the best solutions so far. Simplicity pressure keeps the code clean across generations.
-
-**`/cortex-experiment`** — single cycle. One hypothesis, one measurement, keep or discard.
-
-### Cross-Session Learning
-
-Every experiment accumulates structured reflections — not just pass/fail, but *why* things fail. These feed forward into future attempts in the same session, and optionally into pctx as `experience` records discoverable across future sessions.
-
-**`/cortex-reflect`** synthesizes everything: experiment patterns, pctx decision history, architectural constraints, how understanding evolved.
-
-**`/cortex-digest`** gives you a quick daily reference card: recent decisions + recent experiment learnings.
-
----
-
-## Quick Start
-
-```bash
-# One-time: scan the project
-/cortex-init
-
-# Autonomous improvement
-/cortex-auto "Fix all TypeScript strict mode errors" --metric "npx tsc --noEmit 2>&1 | grep -c error"
-
-# Or try N approaches, pick the winner
-/cortex-sweep "Add input validation to the API layer"
-
-# Review what the codebase has learned
-/cortex-log --patterns
-/cortex-reflect
-```
-
----
-
-## Walkthrough: Autonomous Experimentation
-
-### `/cortex-auto` — Reflexion loop
-
-```
-/cortex-auto "Fix all TypeScript strict mode errors" --metric "npx tsc --noEmit 2>&1 | grep -c error" --max 15
-```
-
-```
-Decomposed into 3 sub-goals:
-  1. Fix null/undefined errors (most mechanical)
-  2. Fix implicit `any` types
-  3. Fix strict function type errors
-
-Baseline: 47 errors
-
-✓ Attempt 1: KEEP — Add null checks in useAuth hook
-  47 → 31 errors
-
-✗ Attempt 2: DISCARD — Add `as unknown as T` casts
-  31 → 33 errors (regression)
-  Reflection: Type assertions hide errors instead of fixing them. This codebase
-  catches them downstream. Avoid assertions — use proper narrowing instead.
-
-✓ Attempt 3: KEEP — Add explicit return types to service functions
-  31 → 18 errors
-
-[...continuing autonomously...]
-
-Goal met after 11 attempts. 47 → 0 errors.
-8 kept · 3 discarded
-
-Patterns learned:
-- Type assertions consistently make things worse here
-- Service layer is the highest-yield target for type annotations
-- Component props are already well-typed — focus on hooks and utilities
-```
-
-The reflexion system captures *why* attempts fail. By attempt 5, the agent isn't just avoiding past approaches — it understands the constraints of this specific codebase.
-
-### `/cortex-sweep` — Parallel best-of-N
-
-```
-/cortex-sweep "Add rate limiting to the API" --n 3
-```
-
-```
-Generating 3 candidates:
-  A: simplicity  — minimize lines, remove over add
-  B: performance — maximize metric improvement
-  C: readability — clarity, explicit types, clean naming
-
-| Candidate | Strategy    | Tests | Lint | Lines Δ | Rank |
-|-----------|-------------|-------|------|---------|------|
-| A ✓       | simplicity  | PASS  | PASS | +42     | 1st  |
-| C         | readability | PASS  | PASS | +67     | 2nd  |
-| B         | performance | FAIL  | PASS | +89     | 3rd  |
-
-Winner: Candidate A
-```
-
-If multiple candidates pass, Cortex cross-checks them for behavioral disagreements before you decide.
-
-### `/cortex-evolve` — Evolutionary optimization
-
-```
-/cortex-evolve "Reduce bundle size" --metric "du -b dist/bundle.js | cut -f1" --target 200000 --generations 8
-```
-
-```
-Baseline: 458,240 bytes  |  Target: 200,000 bytes
-
-Gen 1:  ████████████████████████  430,120  (KEEP, -6.1%)   [tree-shake lodash]
-Gen 2:  ███████████████████████   412,400  (KEEP, -9.8%)   [lazy-load routes]
-Gen 3:  ███████████████████████   412,400  (no improvement)
-Gen 4:  ██████████████████████    390,800  (KEEP, -14.7%)  [code split vendor]
-Gen 5:  █████████████████████     365,200  (KEEP, -20.2%)  [replace moment → date-fns]
-Gen 6:  ████████████████████      340,100  (KEEP, -25.7%)  [replace axios → native fetch]
-Gen 7:  ██████████████████        290,400  (KEEP, -36.6%)  [remove unused polyfills]
-Gen 8:  █████████████████         198,200  (KEEP ✓ TARGET MET, -56.7%)
-```
-
-Simplicity pressure is built in: candidates that add >30 lines for ≤2% gain are ranked alongside the current best, not above it.
-
----
-
-## All Commands
-
-### Project Intelligence
-
-| Command | What it does |
-|---------|-------------|
-| `/cortex-init` | Scan codebase, derive conventions, architecture, coupling hotspots. Creates `.cortex/profile.json` and `CONVENTIONS.md`. |
-| `/cortex-init --update` | Rescan only changed files and patch the profile. Faster than a full re-init. |
+## Commands
 
 ### Experimentation
 
-| Command | What it does |
-|---------|-------------|
-| `/cortex-auto <task>` | Autonomous loop. Reflexion memory, curriculum decomposition, best-shot context. Runs until goal met or `--max` hit. |
-| `/cortex-sweep <task>` | Generate N candidates with different strategies, evaluate all, apply the winner. |
-| `/cortex-evolve <goal>` | Evolutionary optimization across generations with simplicity pressure and progress visualization. |
-| `/cortex-experiment <hypothesis>` | Single cycle: try one change, measure, keep or discard with reflection. |
-| `/cortex-log [query]` | View experiment history. `--patterns` synthesizes what's been learned across all sessions. |
+**`/cortex-auto <task> --metric "<command>"`**
+Autonomous improvement loop. Reflexion memory, curriculum decomposition (easy→hard sub-goals), best-shot context (top 3 past wins shown to each attempt). Runs until goal met or `--max` hit.
 
-### Building (when you have a specific plan)
+**`/cortex-sweep <task>`**
+Generate N candidates simultaneously — each with a different strategy (simplicity, performance, readability) — evaluate all, apply the winner. Cross-checks candidates for behavioral disagreements.
 
-| Command | What it does |
-|---------|-------------|
-| `/cortex-build` | Execute a structured plan step by step. Each step runs in isolation with a fresh context packet — no context rot across steps. Resumes if interrupted. |
+```
+| Candidate | Strategy    | Tests | Lines Δ | Rank |
+|-----------|-------------|-------|---------|------|
+| A ✓       | simplicity  | PASS  | +42     | 1st  |
+| C         | readability | PASS  | +67     | 2nd  |
+| B         | performance | FAIL  | +89     | 3rd  |
+```
 
-### Intelligence Synthesis
+**`/cortex-evolve <goal> --metric "<command>"`**
+Evolutionary optimization across generations. Best survivors inspire the next generation. Simplicity pressure penalizes bloat.
 
-| Command | What it does |
-|---------|-------------|
-| `/cortex-reflect` | Full cross-session synthesis — experiment patterns, pctx decisions, progressions, stale knowledge. |
-| `/cortex-digest` | Quick daily reference card: recent decisions + experiment learnings. |
+```
+Gen 1:  430,120 bytes  (KEEP -6.1%)   tree-shake lodash
+Gen 2:  412,400 bytes  (KEEP -9.8%)   lazy-load routes
+Gen 5:  365,200 bytes  (KEEP -20.2%)  replace moment → date-fns
+Gen 8:  198,200 bytes  (KEEP ✓ TARGET MET -56.7%)
+```
+
+**`/cortex-experiment <hypothesis>`**
+Single cycle: one change, one measurement, keep or discard with a reflection.
+
+**`/cortex-log [--patterns]`**
+View experiment history. `--patterns` synthesizes what this codebase has learned across all sessions.
+
+```
+What Tends to Work
+  - Removing unused imports (tree-shaking not configured — big wins)
+  - Explicit return types in service layer
+
+What Tends to Fail
+  - Type assertions — hide errors, cause downstream failures
+  - Changing the auth store shape — blast radius too high (5+ consumers)
+```
+
+### Project Intelligence
+
+**`/cortex-init [--update]`**
+Scan codebase with 3 parallel agents. Derives naming conventions, test locations, CI commands, core abstractions, and coupling hotspots (files that frequently change together in git). `--update` rescans only changed files.
+
+**`/cortex-build`**
+Execute a structured plan step by step. Each step gets a fresh isolated context — no accumulated garbage from previous steps degrading quality.
+
+### Cross-Session Intelligence
+
+**`/cortex-reflect`**
+Full synthesis: experiment patterns, pctx decision history, progressions (how understanding evolved), stale knowledge. The compound intelligence flywheel.
+
+**`/cortex-digest`**
+Quick daily reference card. Recent decisions + recent experiment learnings. Designed to be called at the start of a session.
 
 ---
 
-## What Gets Committed
+## How it works
+
+**Reflexion memory** — on every discard, the experimenter writes a structured reflection: what it tried, why it failed, what constraint it learned. This feeds into subsequent attempts. By attempt 5, the agent understands why things fail in this codebase, not just what failed.
+
+**Best-shot context** — the top 3 successful past changes are shown to each new attempt as examples. The agent learns what kinds of changes work here.
+
+**Curriculum decomposition** — complex goals are broken into sub-goals ordered easy→hard. Early wins scaffold harder problems.
+
+**Git checkpoints** — creates a dedicated branch, commits before each attempt, `git reset --hard` on discard. The branch shows exactly what worked.
+
+**Context isolation in builds** — each plan step gets a compact context packet (conventions + prior step summaries) rather than the full accumulated session. Step 8 runs with the same quality as step 1.
+
+---
+
+## What's inside
+
+```
+9 commands · 4 agents · 2 hooks
+Pure markdown + shell. Zero dependencies.
+```
+
+| | |
+|---|---|
+| **Agents** | `convention-scanner`, `dependency-mapper`, `history-analyzer`, `experimenter` |
+| **Hooks** | `pre-task-inject` — injects project context + recent experiment learnings on every prompt |
+| | `post-tool-lint` — auto lint-fix after every file write |
+
+---
+
+## What gets committed
 
 ```
 .cortex/
-├── profile.json        ← commit this (shared project intelligence)
-├── CONVENTIONS.md      ← commit this (human-readable reference)
-├── .gitignore          ← auto-created
-└── experiments/        ← NOT committed (local experiment history)
-    ├── active-session.json
+├── profile.json        ← commit (shared project intelligence)
+├── CONVENTIONS.md      ← commit (human-readable reference)
+└── experiments/        ← gitignored (local history)
     └── log.json
 ```
-
----
-
-## What's Inside
-
-| Component | Count | Details |
-|-----------|-------|---------|
-| Commands | 9 | init, build, auto, sweep, evolve, experiment, log, reflect, digest |
-| Agents | 4 | convention-scanner, dependency-mapper, history-analyzer, experimenter |
-| Hooks | 2 | `pre-task-inject` (context + experiment learnings on every prompt) · `post-tool-lint` (auto lint-fix on file write) |
-
-Pure markdown + shell scripts. Zero dependencies beyond Claude Code.
-
----
-
-## How It Compares
-
-**vs. autoresearch / AlphaCode-style loops**: Cortex adds reflexion memory (learning *why* failures happen), curriculum decomposition (easy→hard sub-goals), best-shot context (successful past attempts as inspiration), and cross-session pattern accumulation. autoresearch keeps a TSV of results — Cortex builds causal understanding.
-
-**vs. GSD / complex workflow plugins**: Cortex deliberately avoids replicating what Claude Code already does well (planning, reviewing, debugging, shipping). Research shows complex plugins burn tokens and hurt performance. Cortex focuses on the one thing it uniquely provides: the experiment loop and project intelligence.
-
-**vs. building your own CLAUDE.md**: A static CLAUDE.md goes stale, can't track decisions or experiments, and adds token overhead with diminishing returns (ETH Zurich 2026: LLM-generated context files reduce task success by 3%). Cortex's profile is auto-generated, stays current with `--update`, and injects only what's needed per prompt via the hook.
 
 ---
 

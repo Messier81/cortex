@@ -125,6 +125,40 @@ with open(hooks_file, 'w') as f:
 " "$TARGET_DIR/.claude/hooks/hooks.json" ".claude/hooks/" "$HOOKS_INSTALL_DIR/"
 cp "$SOURCE_DIR/skills/project-intelligence/SKILL.md" "$TARGET_DIR/.claude/skills/project-intelligence/"
 
+# Register global hooks in ~/.claude/settings.json using absolute paths.
+# Replaces any existing ${CLAUDE_PLUGIN_ROOT} references, or adds hooks if absent.
+GLOBAL_SETTINGS="$HOME/.claude/settings.json"
+CORTEX_HOOKS_DIR="$(cd "$SOURCE_DIR/hooks" && pwd)"
+
+if [ -f "$GLOBAL_SETTINGS" ]; then
+  python3 -c "
+import json, sys
+
+settings_file = sys.argv[1]
+hooks_dir = sys.argv[2]
+
+with open(settings_file) as f:
+    settings = json.load(f)
+
+hooks = settings.setdefault('hooks', {})
+
+hooks['UserPromptSubmit'] = [{'hooks': [{'type': 'command', 'command': hooks_dir + '/pre-task-inject.sh', 'timeout': 3}]}]
+
+post = hooks.get('PostToolUse', [])
+# Remove any existing Cortex lint entry (by script name) then re-add with correct path
+post = [e for e in post if not any('post-tool-lint' in h.get('command', '') for h in e.get('hooks', []))]
+post.append({'matcher': 'Write|Edit|MultiEdit', 'hooks': [{'type': 'command', 'command': hooks_dir + '/post-tool-lint.sh', 'timeout': 10}]})
+hooks['PostToolUse'] = post
+
+with open(settings_file, 'w') as f:
+    json.dump(settings, f, indent=2)
+    f.write('\n')
+" "$GLOBAL_SETTINGS" "$CORTEX_HOOKS_DIR"
+  echo -e "  ${GREEN}✓${NC} Registered global hooks in $GLOBAL_SETTINGS"
+else
+  echo -e "  ${YELLOW}⚠${NC}  $GLOBAL_SETTINGS not found — skipping global hook registration"
+fi
+
 echo ""
 echo -e "${GREEN}Done! Cortex installed into $TARGET_DIR/.claude/${NC}"
 echo -e "  19 commands, 11 agents, 1 skill, 2 hooks"

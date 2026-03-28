@@ -71,10 +71,8 @@ CONTEXT="$CONTEXT). File naming: $FILE_NAMING."
 if [ -n "$TEST_CMD" ]; then
   CONTEXT="$CONTEXT Tests: \`$TEST_CMD\`."
 fi
-CONTEXT="$CONTEXT Run \`/cortex-focus\` for full context selection."
-
 if [ -n "$STALE" ]; then
-  CONTEXT="$CONTEXT [Profile is over 30 days old — run /cortex-update to refresh.]"
+  CONTEXT="$CONTEXT [Profile is over 30 days old — run /cortex-init --update to refresh.]"
 fi
 
 # Check experiment log for session count + most recent pattern (1 python3 call)

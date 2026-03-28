@@ -271,7 +271,7 @@ Status: GOAL MET ✓ / MAX ITERATIONS / INTERRUPTED
 Branch: <branch-name>
 <N> improvements committed.
 
-Next: /cortex-review to verify quality, /cortex-ship to push and open a PR.
+Next: push your branch and open a PR, or run /cortex-sweep to try parallel strategies on the next goal.
 ```
 
 ### Cleanup

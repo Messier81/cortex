@@ -191,8 +191,7 @@ Best attempt:
   Candidate <X>: <metric value> (<description>)
 
 Suggestions:
-- Run /cortex-debug to diagnose why the metric isn't moving
-- Run /cortex-auto to try iterative approaches with reflexion
+- Run /cortex-auto to try iterative approaches with reflexion memory
 - Revisit the metric command — is it measuring what you expect?
 ```
 

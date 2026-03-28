@@ -187,7 +187,7 @@ Patterns learned:
 
 Branch: <branch-name>
 
-Next: /cortex-review, /cortex-ship
+Next: push your branch and open a PR.
 ```
 
 Append to `.cortex/experiments/log.json` — read existing file, push into the `sessions` array, write back. Never overwrite. Use `"type": "evolve"`:

@@ -1,8 +1,8 @@
 {
   "name": "cortex",
-  "description": "Adaptive project intelligence for Claude Code. Auto-derives your project conventions, selects relevant context for any task, and verifies changes against original intent.",
+  "description": "Autonomous experiment lab for Claude Code. Scans your project once for conventions and architecture, then runs metric-driven experiment loops with reflexion memory — improving your code autonomously.",
   "author": {
     "name": "cortex-cc",
-    "url": "https://github.com/cortex-cc/cortex"
+    "url": "https://github.com/Messier81/cortex"
   }
 }

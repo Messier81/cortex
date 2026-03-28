@@ -208,7 +208,16 @@ Log all attempts to the experiment log with status `discard` and reflections.
 Winner: Candidate <X> (<strategy> strategy)
 Metric: <baseline> → <final> (<delta>)
 Candidates evaluated: N
-
-Run /cortex-review for quality review.
-Run /cortex-ship to push and open a PR.
 ```
+
+### Persist to pctx (if available)
+
+Check if pctx tools are available by attempting `pctx_list`. If available and the sweep had a winner:
+- Note which strategy won (simplicity/performance/readability) and why
+- Call `pctx_new` with:
+  - `record_type: "experience"`
+  - `title`: `"Sweep: <task-slug> — <winning strategy> strategy won"`
+  - `body`: "Winner: <strategy>. Metric: <baseline> → <final>. Key insight: <why this strategy worked over others>."
+  - `tags`: task keywords + `["cortex-experiment", "sweep"]`
+
+If pctx is not available, results are logged only to `log.json` (fully functional without it).

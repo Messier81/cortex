@@ -150,6 +150,17 @@ Read all entries in the program database. Extract patterns:
 - What did discarded attempts have in common?
 - Any constraints discovered?
 
+### Persist to pctx (if available)
+
+Check if pctx tools are available by attempting `pctx_list`. If available:
+- For each top pattern extracted, call `pctx_new` with:
+  - `record_type: "experience"`
+  - `title`: `"Evolve: <goal-slug> — <pattern headline>"`
+  - `body`: the full pattern text with metric context
+  - `tags`: goal keywords + `["cortex-experiment", "evolve"]`
+
+If pctx is not available, patterns are saved only in `log.json`.
+
 ---
 
 ## Step 5: Completion

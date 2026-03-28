@@ -77,27 +77,34 @@ if [ -n "$STALE" ]; then
   CONTEXT="$CONTEXT [Profile is over 30 days old — run /cortex-update to refresh.]"
 fi
 
-# Check if active intent is stale vs latest commit (1 python3 call)
-INTENT_PATH="$(pwd)/.cortex/active-intent.json"
-if [ -f "$INTENT_PATH" ]; then
-  INTENT_STALE=$(python3 -c "
-import json, subprocess, datetime
+# Check experiment log for session count + most recent pattern (1 python3 call)
+LOG_PATH="$(pwd)/.cortex/experiments/log.json"
+if [ -f "$LOG_PATH" ]; then
+  EXPERIMENT_HINT=$(python3 -c "
+import json
 try:
-    intent = json.load(open('$INTENT_PATH'))
-    captured = intent.get('captured_at', '')
-    if captured:
-        dt = datetime.datetime.fromisoformat(captured.replace('Z', '+00:00'))
-        intent_ts = dt.timestamp()
-        result = subprocess.run(['git', 'log', '-1', '--format=%ct'], capture_output=True, text=True)
-        commit_ts = int(result.stdout.strip()) if result.stdout.strip() else 0
-        print('stale' if commit_ts > intent_ts else '')
-    else:
+    data = json.load(open('$LOG_PATH'))
+    sessions = data.get('sessions', [])
+    count = len(sessions)
+    if count == 0:
         print('')
+    else:
+        # Find most recent pattern across all sessions (only read patterns_learned, skip attempts)
+        latest_pattern = ''
+        for s in reversed(sessions):
+            patterns = s.get('patterns_learned', [])
+            if patterns:
+                latest_pattern = str(patterns[0])[:80]
+                break
+        if latest_pattern:
+            print(f'{count} experiment sessions. Recent learning: {latest_pattern}')
+        else:
+            print(f'{count} experiment sessions logged.')
 except:
     print('')
 " 2>/dev/null)
-  if [ -n "$INTENT_STALE" ]; then
-    CONTEXT="$CONTEXT [Active intent predates latest commit — run /cortex-focus to refresh.]"
+  if [ -n "$EXPERIMENT_HINT" ]; then
+    CONTEXT="$CONTEXT [Cortex experiments: $EXPERIMENT_HINT]"
   fi
 fi
 

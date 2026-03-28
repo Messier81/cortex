@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(d.get\\(''''description'''',''''''''\\), d.get\\(''''stargazers_count'''',''''''''\\), d.get\\(''''language'''',''''''''\\), d.get\\(''''topics'''',''''''''\\)\\)\")",
+      "WebSearch",
+      "WebFetch(domain:www.reddit.com)",
+      "WebFetch(domain:news.ycombinator.com)",
+      "WebFetch(domain:alphaguruai.substack.com)",
+      "WebFetch(domain:addyosmani.com)",
+      "WebFetch(domain:blog.jetbrains.com)",
+      "WebFetch(domain:www.infoq.com)",
+      "WebFetch(domain:jannikreinhard.com)",
+      "WebFetch(domain:oneuptime.com)",
+      "WebFetch(domain:medium.com)",
+      "WebFetch(domain:dev.to)",
+      "WebFetch(domain:www.morphllm.com)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); [print\\(k,v.get\\(''''command'''',''''''''\\)\\) for k,v in d.get\\(''''mcpServers'''',{}\\).items\\(\\) if ''''pctx'''' in k.lower\\(\\)]\")",
+      "Bash(git -C /Users/nesan/Other/cortex branch --show-current)",
+      "Bash(git -C /Users/nesan/Other/cortex log --oneline -10)",
+      "Bash(git -C /Users/nesan/Other/cortex status)",
+      "Bash(git:*)"
+    ]
+  }
+}

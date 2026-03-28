@@ -103,10 +103,13 @@ Extract and synthesize ALL patterns from ALL sessions in the log.
 
 Read every `patterns_learned` array and every `reflection` field across all sessions.
 
+**pctx enhancement (if available)**: also call `pctx_search` with tags `["cortex-experiment"]` to retrieve any experiment experience records stored in pctx. Merge these with the local `log.json` patterns — pctx may have patterns from sessions run in other worktrees or before the local log existed.
+
 Organize the synthesized patterns into categories:
 
 ```
 ## Codebase Patterns — Learned from N Experiments
+<Source: log.json (N sessions) + pctx (M records)>
 
 ### What Tends to Work
 - <pattern> (seen in N sessions)
@@ -128,8 +131,8 @@ Organize the synthesized patterns into categories:
 - <finding> (e.g., "CSS optimization has minimal effect — styles are not on the critical path")
 
 ---
-These patterns are automatically extracted from experiment reflections.
-Run /cortex-remember to save a pattern manually.
+Patterns extracted from experiment reflections across all sessions.
+Run /cortex-reflect for a full cross-session intelligence synthesis.
 ```
 
 This is the "Voyager skill library" equivalent — accumulated knowledge from all experiments, surfaced as actionable patterns specific to this codebase.
